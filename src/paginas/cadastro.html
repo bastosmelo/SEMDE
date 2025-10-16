@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sidebar Fixo</title>
+
+  <!-- Fonte e Ícones -->
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
+
+  <style>
+    :root {
+      --bg: #f6fbfd;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --primary-1: #3968FF;
+      --primary-2: #4AD6C1;
+      --shadow: rgba(20,20,40,0.06);
+
+      --page-bg: var(--bg);
+      --text: #0b1220;
+      --muted-2: #6b7280;
+      --sidebar-bg: #ffffff;
+      --menu-hover-bg: rgba(57,104,255,0.06);
+    }
+
+    .dark {
+      --page-bg: #071127;
+      --text: #e6eef6;
+      --muted-2: #94a3b8;
+      --sidebar-bg: linear-gradient(180deg, #071127, #071827);
+      --menu-hover-bg: rgba(255,255,255,0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Baloo 2', system-ui, Segoe UI, Roboto;
+      background: var(--page-bg);
+      color: var(--text);
+    }
+
+    /* SIDEBAR FIXO */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 250px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid rgba(0,0,0,0.05);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 4px 0 20px var(--shadow);
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .profile img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(0,0,0,0.04);
+    }
+
+    .profile h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .profile small {
+      display: block;
+      color: var(--muted-2);
+      font-size: 12px;
+    }
+
+    .menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .menu-item, .menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      color: var(--muted-2);
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .14s, transform .08s, color .12s;
+      width: 100%;
+      text-align: left;
+    }
+
+    .menu-item:hover, .menu-btn:hover {
+      background: var(--menu-hover-bg);
+      color: var(--text);
+      transform: translateX(3px);
+    }
+
+    .menu-item i, .menu-btn i {
+      width: 18px;
+      height: 18px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* CONTEÚDO PRINCIPAL */
+    main {
+      margin-left: 250px;
+      padding: 40px;
+      transition: background 0.3s;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-radius: 0;
+      }
+      main {
+        margin-left: 0;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="profile">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="perfil">
+      <div>
+        <h1 id="profileName">Usuário</h1>
+        <small id="profileStatus">Online</small>
+      </div>
+    </div>
+
+    <ul class="menu">
+      <li><button class="menu-item" data-page="index"><i data-lucide="home"></i>Dashboard</button></li>
+      <li><button class="menu-item" data-page="acoes"><i data-lucide="activity"></i>Ações</button></li>
+      <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i>Tarefas</button></li>
+      <li><button class="menu-item" data-page="cadastro"><i data-lucide="user-plus"></i>Cadastro</button></li>
+      <li><button class="menu-item" data-page="financeiro"><i data-lucide="dollar-sign"></i>Financeiro</button></li>
+      <li><button class="menu-item" data-page="config"><i data-lucide="settings"></i>Configurações</button></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button id="themeToggle" class="menu-btn"><i data-lucide="moon"></i><span id="themeLabel">Tema</span></button>
+      <button id="logoutBtn" class="menu-btn"><i data-lucide="log-out"></i><span>Sair</span></button>
+    </div>
+  </aside>
+
+  <main>
+    <h1>Bem-vindo ao sistema</h1>
+    <p>Cadastro será feito aqui.</p>
+  </main>
+
+  <script>
+    // inicializa lucide icons quando disponível
+    window.addEventListener('load', ()=> {
+      if(window.lucide) lucide.createIcons();
+    });
+
+    /* ================= CONFIG ================= */
+    // Navegação do menu (simples, carrega outras páginas)
+    document.querySelectorAll('.menu-item').forEach(button => {
+    button.addEventListener('click', () => {
+        const page = button.dataset.page;
+        window.location.href = `../paginas/${page}.html`;
+    });
+    });
+
+    /* ===== Tema ===== */
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    const savedTheme = localStorage.getItem('theme');
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        themeLabel.textContent = 'Claro';
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeLabel.textContent = 'Escuro';
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    applyTheme(savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(isDark ? 'light' : 'dark');
+    });
+
+    /* ===== Logout ===== */
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn.addEventListener('click', () => {
+      localStorage.clear();
+      alert('Você saiu do sistema.');
+      window.location.href = './index.html';
+    });
+
+    const storedName = localStorage.getItem('name');
+    if (storedName) document.getElementById('profileName').textContent = storedName;
+  </script>
+</body>
+</html>

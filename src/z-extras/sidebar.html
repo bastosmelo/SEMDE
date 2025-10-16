@@ -1,0 +1,159 @@
+<!-- sidebar.html -->
+
+<head>
+    <link rel="stylesheet" href="C:\Users\basto\Downloads\TakeOff 2025.2 - SEMDE\SEMDE\src\css\sidebar.css">
+</head>
+
+<!-- Header Mobile -->
+<div class="mobile-header">
+    <button class="hamburger" id="hamburgerBtn">&#9776;</button>
+</div>
+
+<div class="sidebar">
+    <div class="sidebar-content">
+        <div class="profile">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+                alt="Foto de Perfil">
+            <h1>Nome</h1>
+        </div>
+        <ul class="menu">
+            <li><a href="/src/páginas/dashboard.html"><img src="https://cdn-icons-png.flaticon.com/512/262/262038.png"
+                        alt=""> Dashboard</a></li>
+            <li><a href="/src/páginas/telaações.html"><img
+                        src="https://cdn-icons-png.flaticon.com/256/13321/13321142.png" alt=""> Ações</a></li>
+            <li><a href="/src/páginas/gestaotarefas.html"><img
+                        src="https://cdn-icons-png.flaticon.com/512/900/900772.png" alt=""> Gestão de tarefas</a></li>
+            <li><a href="#"><img src="https://cdn-icons-png.flaticon.com/256/1769/1769328.png" alt=""> Cadastro</a></li>
+            <li><a href="/src/páginas/financeiro.html"><img
+                        src="https://cdn-icons-png.flaticon.com/512/2150/2150062.png" alt=""> Financeiro</a></li>
+            <li><a href="#"><img
+                        src="https://marketplace.canva.com/O52vs/MADJzpO52vs/2/tl/canva-calendar-icon-MADJzpO52vs.png"
+                        alt=""> Eleição 20XX</a></li>
+            <li><a href="/src/páginas/configurações.html"><img
+                        src="https://cdn-icons-png.flaticon.com/512/8053/8053573.png" alt=""> Configurações</a></li>
+        </ul>
+    </div>
+
+    <div class="logout">
+        <a href="#" id="openThemes">Temas</a>
+        <a href="#">Sair</a>
+    </div>
+</div>
+
+<!-- MENU MOBILE (overlay preto) -->
+<div id="mobileMenu" class="mobile-menu">
+    <button class="close-mobile" id="closeMobile">&times;</button>
+    <ul class="menu">
+        <li><a href="/src/páginas/dashboard.html">Dashboard</a></li>
+        <li><a href="/src/páginas/telaações.html">Ações</a></li>
+        <li><a href="/src/páginas/gestaotarefas.html">Gestão de tarefas</a></li>
+        <li><a href="#">Cadastro</a></li>
+        <li><a href="/src/páginas/financeiro.html">Financeiro</a></li>
+        <li><a href="#">Eleição 20XX</a></li>
+        <li><a href="/src/páginas/configurações.html">Configurações</a></li>
+        <li><a href="#" id="openThemesMobile">Temas</a></li>
+        <li><a href="#">Sair</a></li>
+    </ul>
+</div>
+
+<!-- Overlay de seleção de temas -->
+<div id="themeOverlay" class="overlay" aria-hidden="true">
+    <div class="overlay-content" role="dialog" aria-modal="true" aria-labelledby="themeTitle">
+        <h2 id="themeTitle">Escolha seu tema</h2>
+
+        <h3 class="theme-category">Temas Base</h3>
+        <div class="theme-list base-list">
+            <div class="theme-item" data-theme="light" data-name="Claro"
+                style="--preview-bg:#FDFFFE; --preview-text:#000;">
+                <div class="theme-circle" aria-hidden="true">Aa</div>
+                <div class="theme-info"><strong>Claro</strong><span>Fundo claro padrão</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="gray" data-name="Cinza"
+                style="--preview-bg:#f7f7f7; --preview-text:#222;">
+                <div class="theme-circle" aria-hidden="true">Aa</div>
+                <div class="theme-info"><strong>Cinza</strong><span>Leve acinzentado</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="dark" data-name="Escuro"
+                style="--preview-bg:#121212; --preview-text:#fff;">
+                <div class="theme-circle" aria-hidden="true">Aa</div>
+                <div class="theme-info"><strong>Escuro</strong><span>Modo noturno</span></div>
+            </div>
+        </div>
+
+        <h3 class="theme-category">Temas de Cor</h3>
+        <div class="theme-list color-list" id="colorThemeList">
+            <!-- cada theme-item abaixo representa 1 tema pastel -->
+            <div class="theme-item" data-theme="pastel-pink" data-name="Rosa"
+                style="--preview-bg:#ffe4ec; --preview-text:#503344;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Rosa</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-blue" data-name="Azul"
+                style="--preview-bg:#e0f0ff; --preview-text:#2f3d4d;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Azul</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-green" data-name="Verde"
+                style="--preview-bg:#e9fbe8; --preview-text:#304330;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Verde</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-purple" data-name="Roxo"
+                style="--preview-bg:#f3e9fb; --preview-text:#3b2f47;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Roxo</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-yellow" data-name="Amarelo"
+                style="--preview-bg:#fffbe6; --preview-text:#4d4730;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Amarelo</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-orange" data-name="Laranja"
+                style="--preview-bg:#fff0e0; --preview-text:#503a2a;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Laranja</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-cyan" data-name="Ciano"
+                style="--preview-bg:#e6fbfb; --preview-text:#2f4545;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Ciano</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-lilac" data-name="Lilás"
+                style="--preview-bg:#f4e6fb; --preview-text:#40314d;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Lilás</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-peach" data-name="Pêssego"
+                style="--preview-bg:#ffece0; --preview-text:#503630;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Pêssego</strong><span>Pastel suave</span></div>
+            </div>
+
+            <div class="theme-item" data-theme="pastel-mint" data-name="Menta"
+                style="--preview-bg:#e0fff3; --preview-text:#2f453d;">
+                <div class="theme-circle">Aa</div>
+                <div class="theme-info"><strong>Menta</strong><span>Pastel suave</span></div>
+            </div>
+        </div>
+
+        <div class="sidebar-toggle">
+            <button id="sidebarBgBtn" class="toggle-btn">Fundo da Sidebar</button>
+        </div>
+
+
+        <button id="closeThemes" class="close-btn">Fechar</button>
+
+        <script src="/src/js/sidebar.js"></script>
+
+    </div>
+</div>
