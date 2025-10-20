@@ -277,23 +277,23 @@
     switch (state) {
       case "normal":
         mascote.classList.add("normal");
-        img.src = "../z-extras/ia/parado.png";
+        img.src = "/ia/parado.png";
         break;
       case "chat":
         mascote.classList.add("chat");
-        img.src = "../z-extras/ia/normal.gif";
+        img.src = "/ia/normal.gif";
         break;
       case "talking":
         mascote.classList.add("talking");
-        img.src = "../z-extras/ia/fala.gif";
+        img.src = "/ia/fala.gif";
         break;
       case "enlarge":
         mascote.classList.add("enlarge");
-        img.src = "../z-extras/ia/aumenta.gif";
+        img.src = "/ia/aumenta.gif";
         break;
       case "closeAnimation":
         mascote.classList.add("closeAnimation");
-        img.src = "../z-extras/ia/fecha.gif"; // GIF tirando os óculos
+        img.src = "/ia/fecha.gif"; // GIF tirando os óculos
         break;
     }
   }
