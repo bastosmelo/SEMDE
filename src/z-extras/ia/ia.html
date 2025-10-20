@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Assistente Local</title>
+  <link rel="stylesheet" href="ia.css">
+</head>
+
+<body>
+
+  <!-- Mascote fixo -->
+  <div id="iaMascote" class="mascote normal">
+    <img src="./parado.png" alt="Mascote Assistente">
+  </div>
+
+  <div id="ia-root" aria-live="polite">
+    <div class="ia-widget" role="dialog" aria-label="Assistente virtual">
+      <div class="ia-header">
+        <img src="./icon.png" alt="Rosto da assistente" class="ia-face">
+        <div class="ia-title">Assistente</div>
+      </div>
+
+      <div class="ia-chat" id="iaChat" aria-atomic="true" aria-relevant="additions"></div>
+
+      <div id="iaOptions" class="ia-options" style="display:none"></div>
+
+      <div class="ia-input">
+        <input id="iaInput" type="text" placeholder="Pergunte algo..." aria-label="Digite sua mensagem">
+        <button id="iaSend" aria-label="Enviar mensagem">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="ia.js"></script>
+</body>
+
+</html>

@@ -1,344 +1,203 @@
-// Sistema de Gestão de Tarefas
-class TaskManager {
-    constructor() {
-        this.tasks = [];
-        this.taskIdCounter = 1;
-        this.init();
-    }
-
-    init() {
-        this.bindEvents();
-        this.loadInitialTasks();
-        this.bindDragAndDrop();
-
-    }
-
-    bindEvents() {
-        // Modal events
-        const modal = document.getElementById('modal-nova-tarefa');
-        const btnNovaTarefa = document.querySelector('.btn-nova-tarefa');
-        const closeBtn = document.querySelector('.close');
-        const btnCancelar = document.querySelector('.btn-cancelar');
-        const form = document.getElementById('form-nova-tarefa');
-
-        // Abrir modal
-        btnNovaTarefa.addEventListener('click', () => {
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
+        // inicializa lucide icons quando disponível
+        window.addEventListener('load', ()=> {
+            if(window.lucide) lucide.createIcons();
         });
 
-        // Fechar modal
-        const closeModal = () => {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            form.reset();
-        };
+        /* ================= CONFIG ================= */
+        // Navegação do menu (simples, carrega outras páginas)
+        document.querySelectorAll('.menu-item').forEach(button => {
+        button.addEventListener('click', () => {
+            const page = button.dataset.page;
+            window.location.href = `../paginas/${page}.html`;
+        });
+        });
 
-        closeBtn.addEventListener('click', closeModal);
-        btnCancelar.addEventListener('click', closeModal);
+        // THEME (persistência)
+        const savedTheme = localStorage.getItem('theme');
+        function applyTheme(theme){
+            if(theme === 'dark'){
+                document.documentElement.classList.add('dark');
+                themeToggle.setAttribute('aria-pressed','true');
+                themeLabel.textContent = 'Claro';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggle.setAttribute('aria-pressed','false');
+                themeLabel.textContent = 'Escuro';
+            }
+            localStorage.setItem('theme', theme);
+        }
+        // elementos
+        const themeToggle = document.getElementById('themeToggle');
+        const themeLabel = document.getElementById('themeLabel');
+        if(savedTheme) applyTheme(savedTheme);
+        else applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
-        // Fechar modal clicando fora
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
+        themeToggle.addEventListener('click', ()=>{
+            const isDark = document.documentElement.classList.contains('dark');
+            applyTheme(isDark ? 'light' : 'dark');
+        });
+
+        // MOBILE menu toggle - CORRIGIDO com o mesmo estilo da página Login - Dashboard
+        document.getElementById('mobileMenuBtn').addEventListener('click', ()=>{
+            const sb = document.querySelector('.sidebar');
+            if(getComputedStyle(sb).display === 'none' || sb.style.display === 'none') {
+                sb.style.display = 'flex';
+            } else {
+                sb.style.display = 'none';
             }
         });
 
-        // Submit do formulário
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.createTask();
-            closeModal();
-        });
-
-        // Bind existing task actions
-        this.bindTaskActions();
-    }
-
-    bindTaskActions() {
-        // Bind edit buttons
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const taskCard = e.target.closest('.task-card');
-                this.editTask(taskCard);
+        // MENU: navegação para arquivos (ver função pageHref)
+        document.querySelectorAll('.menu-item').forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+                const page = btn.dataset.page;
+                const href = pageHref(page);
+                // se for a própria página "tarefas", evita recarregar
+                if(location.pathname.endsWith('/tarefas.html') || location.pathname.endsWith('tarefas.html')){
+                    if(page === 'tarefas' || page === '' ) return;
+                }
+                window.location.href = href;
             });
         });
 
-        // Bind delete buttons
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const taskCard = e.target.closest('.task-card');
-                this.deleteTask(taskCard);
-            });
+        // LOGOUT
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', ()=>{
+            localStorage.removeItem('token');
+            localStorage.removeItem('name');
+            // redireciona ao dashboard/index
+            window.location.href = pageHref('index');
         });
-    }
 
-createTask() {
-    const taskData = {
-        id: this.taskIdCounter++,
-        type: 'Tarefa', // ou coletar do form se houver
-        title: document.getElementById('task-title').value,
-        description: document.getElementById('task-description').value,
-        priority: document.getElementById('task-priority').value,
-        date: document.getElementById('task-date').value,
-        status: document.getElementById('task-status').value
-    };
+        // preenche nome do usuário se houver
+        const profileName = document.getElementById('profileName');
+        const tokenShort = document.getElementById('tokenShort');
+        const storedName = localStorage.getItem('name');
+        const storedToken = localStorage.getItem('token');
+        if(storedName) profileName.textContent = storedName;
+        if(storedToken) tokenShort.textContent = storedToken.slice(0,12) + '…';
 
-    this.tasks.push(taskData);
-    this.renderTask(taskData);
-    this.updateTaskCounts();
+        /* ========== Modal Nova Tarefa ========== */
+        const modal = document.getElementById('modalNovaTarefa');
+        const btnNovaTarefa = document.getElementById('btnNovaTarefa');
+        const closeModal = document.getElementById('closeModal');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const formNovaTarefa = document.getElementById('formNovaTarefa');
 
-    // Fechar modal
-    document.getElementById('modal-nova-tarefa').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    document.getElementById('form-nova-tarefa').reset();
-}
+        function openModal(){
+            modal.classList.add('show');
+            modal.querySelector('input, textarea').focus();
+        }
+        function closeModalFn(){
+            modal.classList.remove('show');
+            formNovaTarefa.reset();
+        }
 
-bindDragAndDrop() {
-    const tasks = document.querySelectorAll('.task-card');
-    const columns = document.querySelectorAll('.tasks-container');
+        btnNovaTarefa.addEventListener('click', openModal);
+        closeModal.addEventListener('click', closeModalFn);
+        btnCancelar.addEventListener('click', closeModalFn);
 
-    tasks.forEach(task => {
-        task.setAttribute('draggable', true);
-
-        task.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', task.dataset.taskId);
+        // fechar clicando fora do conteúdo
+        modal.addEventListener('click', (e)=>{
+            if(e.target === modal) closeModalFn();
         });
-    });
 
-    columns.forEach(column => {
-        column.addEventListener('dragover', (e) => e.preventDefault());
-
-        column.addEventListener('drop', (e) => {
+        // adicionar nova tarefa
+        formNovaTarefa.addEventListener('submit', (e)=>{
             e.preventDefault();
-            const taskId = e.dataTransfer.getData('text/plain');
-            const taskCard = document.querySelector(`.task-card[data-task-id='${taskId}']`);
-            column.appendChild(taskCard);
+            const title = formNovaTarefa['task-title'].value;
+            const description = formNovaTarefa['task-description'].value;
+            const date = formNovaTarefa['task-date'].value;
+            const assignee = formNovaTarefa['task-assignee'].value;
+            const priority = formNovaTarefa['task-priority'].value;
+            const status = formNovaTarefa['task-status'].value;
+            const tags = formNovaTarefa['task-tags'].value;
 
-            // Atualizar status no array
-            const columnStatus = column.parentElement.querySelector('.column-header').classList[1];
-            const task = this.tasks.find(t => t.id == taskId);
-            if (task) task.status = columnStatus;
+            // Formata a data para dd/mm
+            const dateObj = new Date(date);
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const formattedDate = `${day}/${month}`;
 
-            this.updateTaskCounts();
-        });
-    });
-}
+            // Determina a coluna correta
+            const columnSelector = {
+                'a-fazer': '.kanban-column:nth-child(1) .tasks-container',
+                'em-andamento': '.kanban-column:nth-child(2) .tasks-container',
+                'concluido': '.kanban-column:nth-child(3) .tasks-container'
+            }[status];
 
-    renderTask(task) {
-        const taskHTML = this.createTaskHTML(task);
-        const targetColumn = document.querySelector(`.kanban-column .column-header.${task.status}`).parentElement;
-        const tasksContainer = targetColumn.querySelector('.tasks-container');
-        
-        tasksContainer.insertAdjacentHTML('beforeend', taskHTML);
-        
-        // Bind events for the new task
-        const newTaskCard = tasksContainer.lastElementChild;
-        this.bindTaskCardEvents(newTaskCard);
-    }
-
-    createTaskHTML(task) {
-        const priorityClass = task.priority === 'alta' ? 'alta' : task.priority === 'media' ? 'media' : 'baixa';
-        const priorityText = task.priority === 'alta' ? 'Alta' : task.priority === 'media' ? 'Média' : 'Baixa';
-        const formattedDate = this.formatDate(task.date);
-
-        return `
-            <div class="task-card" data-task-id="${task.id}">
-                <div class="task-type">${task.type}</div>
-                <h3 class="task-title">${task.title}</h3>
-                <p class="task-description">${task.description}</p>
+            const column = document.querySelector(columnSelector);
+            
+            // Cria o card da tarefa
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card';
+            taskCard.innerHTML = `
+                <div class="task-type">${tags.split(',')[0] || 'Tarefa'}</div>
+                <h3 class="task-title">${title}</h3>
+                <p class="task-description">${description}</p>
                 <div class="task-footer">
-                    <span class="task-badge ${priorityClass}">${priorityText}</span>
+                    <span class="task-badge ${priority}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
                     <span class="task-date">${formattedDate}</span>
                     <div class="task-actions">
-                        <button class="btn-edit">✏️</button>
-                        <button class="btn-delete">🗑️</button>
+                        <button class="btn-icon" data-action="edit"><i data-lucide="edit-2"></i></button>
+                        <button class="btn-icon" data-action="delete"><i data-lucide="trash-2"></i></button>
                     </div>
                 </div>
-            </div>
-        `;
-    }
+            `;
 
-    bindTaskCardEvents(taskCard) {
-        const editBtn = taskCard.querySelector('.btn-edit');
-        const deleteBtn = taskCard.querySelector('.btn-delete');
-
-        editBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.editTask(taskCard);
-        });
-
-        deleteBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.deleteTask(taskCard);
-        });
-    }
-
-    editTask(taskCard) {
-        const taskId = parseInt(taskCard.dataset.taskId);
-        const task = this.tasks.find(t => t.id === taskId);
-        
-        if (task) {
-            // Simular edição (em uma aplicação real, abriria um modal de edição)
-            const newStatus = prompt('Alterar status para (a-fazer, em-andamento, concluido):', task.status);
+            // Adiciona a tarefa no início da coluna
+            column.prepend(taskCard);
             
-            if (newStatus && ['a-fazer', 'em-andamento', 'concluido'].includes(newStatus)) {
-                const oldStatus = task.status;
-                task.status = newStatus;
-                
-                // Move task to new column if status changed
-                if (oldStatus !== newStatus) {
+            // Atualiza contadores
+            updateTaskCounters();
+            
+            // Re-cria ícones (lucide)
+            if(window.lucide) lucide.createIcons();
+            
+            closeModalFn();
+        });
+
+        // Delegation: editar / excluir tarefas
+        document.addEventListener('click', (e)=>{
+            const btn = e.target.closest('button');
+            if(!btn) return;
+            
+            const action = btn.dataset.action;
+            const taskCard = btn.closest('.task-card');
+            
+            if(action === 'delete'){
+                if(confirm('Excluir esta tarefa?')) {
                     taskCard.remove();
-                    this.renderTask(task);
-                    this.updateTaskCounts();
+                    updateTaskCounters();
                 }
-                
-                this.showNotification('info', 'Status Atualizado', `Status da tarefa "${task.title}" foi alterado para "${this.getStatusText(newStatus)}"`);
-            }
-        }
-    }
-
-    deleteTask(taskCard) {
-        const taskId = parseInt(taskCard.dataset.taskId);
-        const task = this.tasks.find(t => t.id === taskId);
-        
-        if (task && confirm(`Tem certeza que deseja excluir a tarefa "${task.title}"?`)) {
-            this.tasks = this.tasks.filter(t => t.id !== taskId);
-            taskCard.remove();
-            this.updateTaskCounts();
-            
-            this.showNotification('warning', 'Tarefa Excluída', `A tarefa "${task.title}" foi excluída com sucesso.`);
-        }
-    }
-
-    updateTaskCounts() {
-        const columns = {
-            'a-fazer': document.querySelector('.column-header.a-fazer .task-count'),
-            'em-andamento': document.querySelector('.column-header.em-andamento .task-count'),
-            'concluido': document.querySelector('.column-header.concluido .task-count')
-        };
-
-        Object.keys(columns).forEach(status => {
-            const count = document.querySelectorAll(`.column-header.${status}`).length > 0 
-                ? document.querySelector(`.column-header.${status}`).parentElement.querySelectorAll('.task-card').length 
-                : 0;
-            if (columns[status]) {
-                columns[status].textContent = count;
+            } else if(action === 'edit'){
+                // Implementar edição de tarefa
+                alert('Funcionalidade de edição será implementada em breve.');
             }
         });
-    }
 
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    }
+        /* small UX: keyboard esc fecha modal */
+        window.addEventListener('keydown', (e)=>{
+            if(e.key === 'Escape' && modal.classList.contains('show')) closeModalFn();
+        });
 
-    getStatusText(status) {
-        const statusMap = {
-            'a-fazer': 'A fazer',
-            'em-andamento': 'Em andamento',
-            'concluido': 'Concluído'
-        };
-        return statusMap[status] || status;
-    }
-
-    loadInitialTasks() {
-        // Carregar tarefas existentes do DOM para o array
-        document.querySelectorAll('.task-card').forEach(taskCard => {
-            const task = {
-                id: this.taskIdCounter++,
-                type: taskCard.querySelector('.task-type').textContent,
-                title: taskCard.querySelector('.task-title').textContent,
-                description: taskCard.querySelector('.task-description').textContent,
-                priority: taskCard.querySelector('.task-badge').textContent.toLowerCase(),
-                date: taskCard.querySelector('.task-date').textContent,
-                status: this.getStatusFromColumn(taskCard)
-            };
+        /* ========== Função para atualizar contadores ========== */
+        function updateTaskCounters() {
+            const todoTasks = document.querySelectorAll('.kanban-column:nth-child(1) .task-card').length;
+            const doingTasks = document.querySelectorAll('.kanban-column:nth-child(2) .task-card').length;
+            const doneTasks = document.querySelectorAll('.kanban-column:nth-child(3) .task-card').length;
+            const totalTasks = todoTasks + doingTasks + doneTasks;
             
-            taskCard.dataset.taskId = task.id;
-            this.tasks.push(task);
-        });
-
-        this.bindTaskActions();
-    }
-
-    getStatusFromColumn(taskCard) {
-        const column = taskCard.closest('.kanban-column');
-        if (column.querySelector('.a-fazer')) return 'a-fazer';
-        if (column.querySelector('.em-andamento')) return 'em-andamento';
-        if (column.querySelector('.concluido')) return 'concluido';
-        return 'a-fazer';
-    }
-
-    // Sistema de Notificações
-    showNotification(type, title, message) {
-        const container = document.getElementById('notification-container');
-        const notificationId = 'notification-' + Date.now();
-        
-        const icons = {
-            success: '✅',
-            info: 'ℹ️',
-            warning: '⚠️',
-            error: '❌'
-        };
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.id = notificationId;
-        
-        notification.innerHTML = `
-            <div class="notification-icon">${icons[type]}</div>
-            <div class="notification-content">
-                <div class="notification-title">${title}</div>
-                <div class="notification-message">${message}</div>
-            </div>
-            <button class="notification-close">&times;</button>
-            <div class="notification-progress"></div>
-        `;
-
-        container.appendChild(notification);
-
-        // Bind close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            this.removeNotification(notificationId);
-        });
-
-        // Auto remove after 4 seconds
-        setTimeout(() => {
-            this.removeNotification(notificationId);
-        }, 4000);
-    }
-
-    removeNotification(notificationId) {
-        const notification = document.getElementById(notificationId);
-        if (notification) {
-            notification.style.animation = 'notificationSlideOut 0.3s ease-in forwards';
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('todoTasks').textContent = todoTasks;
+            document.getElementById('doingTasks').textContent = doingTasks;
+            document.getElementById('doneTasks').textContent = doneTasks;
+            
+            // Atualiza contadores nos cabeçalhos das colunas
+            document.querySelector('.kanban-column:nth-child(1) .task-count').textContent = todoTasks;
+            document.querySelector('.kanban-column:nth-child(2) .task-count').textContent = doingTasks;
+            document.querySelector('.kanban-column:nth-child(3) .task-count').textContent = doneTasks;
         }
-    }
-}
 
-// Adicionar animação de saída para notificações
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes notificationSlideOut {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Inicializar o sistema quando a página carregar
-document.addEventListener('DOMContentLoaded', () => {
-    new TaskManager();
-});
+        // Inicializa contadores
+        updateTaskCounters();

@@ -1,0 +1,309 @@
+:root {
+  --bg: #f6fbfd;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --primary-1: #3968FF;
+  --primary-2: #2651df;
+  --glass: rgba(255, 255, 255, 0.65);
+  --shadow: rgba(20, 20, 40, 0.06);
+  --accent: #051036;
+  --radius: 14px;
+  --width: 340px;
+  --height: 420px;
+
+  /* text / bg for theme switching */
+  --page-bg: var(--bg);
+  --text: #0b1220;
+  --muted-2: #6b7280;
+  --card-bg: var(--card);
+  --sidebar-bg: #ffffff;
+  --menu-hover-bg: rgba(57, 104, 255, 0.06);
+}
+
+/* Dark theme overrides */
+.dark {
+  --page-bg: #0b1220;
+  --text: #e6eef6;
+  --muted-2: #94a3b8;
+  --primary-1: #010c31;
+  --primary-2: #001763;
+  --accent: #032294;
+  --card-bg: #071127;
+  --sidebar-bg: linear-gradient(180deg, #071127, #071827);
+  --menu-hover-bg: rgba(255, 255, 255, 0.04);
+}
+
+/* Raiz do widget */
+#ia-root {
+  position: fixed;
+  right: 100px;
+  bottom: 20px;
+  z-index: 99999;
+}
+
+/* Widget principal */
+.ia-widget {
+  width: var(--width);
+  height: var(--height);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid rgba(57, 136, 194, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(20px);
+  opacity: 0;
+  display: none;
+  transition: all 0.4s ease;
+}
+
+.ia-widget.open {
+  transform: translateY(0);
+  opacity: 1;
+  display: flex;
+}
+
+/* Cabeçalho */
+.ia-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--primary-1);
+  color: #ffffff;
+}
+
+.ia-face {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.ia-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Chat */
+.ia-chat {
+  padding: 10px;
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--page-bg);
+}
+
+/* Mensagens */
+.ia-msg {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  word-break: break-word;
+  animation: fadeIn 0.18s ease;
+}
+
+.ia-msg-bot {
+  background: var(--primary-2);
+  color: #fff;
+  align-self: flex-start;
+}
+
+.ia-msg-user {
+  background: var(--glass);
+  color: var(--text);
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+/* Opções */
+.ia-options {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
+  animation: fadeSlideDown 0.3s ease;
+}
+
+.ia-options button {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.ia-options button:hover {
+  background: var(--menu-hover-bg);
+}
+
+/* Input */
+.ia-input {
+  display: flex;
+  gap: 0;
+  padding: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--card-bg);
+}
+
+.ia-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  outline: none;
+  font-size: 14px;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.ia-input button {
+  background: var(--primary-1);
+  color: #ffffff;
+  border: none;
+  padding: 0 14px;
+  margin-left: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ia-input button:hover {
+  background: var(--accent);
+}
+
+/* Indicador de digitação */
+.typing {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--primary-2);
+  color: #ffffff;
+}
+
+.dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  background: #8fbfe2;
+  border-radius: 50%;
+  animation: jump 1s infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+/* Mascote fixo */
+#iaMascote {
+  position: fixed;
+  right: 20px;
+  bottom: 35px;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  z-index: 100000;
+}
+
+.mascote img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+/* Estados aumentados */
+.mascote.enlarge img,
+.mascote.chat img,
+.mascote.talking img {
+  transform: scale(2);
+}
+
+/* Animação de fechar chat */
+@keyframes mascoteClose {
+  0% {
+    transform: scale(2) translateY(0);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.5) translateY(-10px);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.mascote.closing img {
+  animation: mascoteClose 0.4s forwards;
+}
+
+/* Animações */
+@keyframes jump {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 420px) {
+  #ia-root {
+    right: 10px;
+    left: 10px;
+    bottom: 14px;
+  }
+
+  .ia-widget {
+    width: calc(100% - 20px);
+    height: 380px;
+  }
+}

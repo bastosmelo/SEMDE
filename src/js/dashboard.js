@@ -1,194 +1,224 @@
-// ----------------------
-// Pega cores do CSS
-// ----------------------
-const rootStyles = getComputedStyle(document.documentElement);
-
-const COLOR_GREEN = rootStyles.getPropertyValue('--color-green').trim();
-const COLOR_BLUE = rootStyles.getPropertyValue('--color-blue').trim();
-const COLOR_RED = rootStyles.getPropertyValue('--color-red').trim();
-const COLOR_CYAN = rootStyles.getPropertyValue('--color-cyan').trim();
-const COLOR_TEXT = rootStyles.getPropertyValue('--color-text').trim();       // texto padrão
+    // Espera lucide carregar e inicializa ícones
+    window.addEventListener('load', () => {
+      if (window.lucide) lucide.createIcons();
+    });
 
 
-// ----------------------
-// Funções para inicializar gráficos
-// ----------------------
+    // Navegação do menu (simples, carrega outras páginas)
+    document.querySelectorAll('.menu-item').forEach(button => {
+      button.addEventListener('click', () => {
+        const page = button.dataset.page;
+        window.location.href = `../paginas/${page}.html`;
+      });
+    });
 
-// Status das Tarefas (Doughnut)
-function initStatusChart() {
-  const chart = echarts.init(document.getElementById('statusChart'));
-  chart.setOption({
-    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)', textStyle: { color: COLOR_TEXT } },
-    series: [{
-      type: 'pie',
-      radius: ['30%', '100%'],
-      center: ['50%', '50%'],
-      label: { show: false, color: COLOR_TEXT },
-      labelLine: { show: false },
-      data: [
-        { value: 6, name: 'Concluído', itemStyle: { color: COLOR_GREEN } },
-        { value: 5, name: 'Em andamento', itemStyle: { color: COLOR_BLUE } },
-        { value: 4, name: 'A fazer', itemStyle: { color: COLOR_RED } }
-      ]
-    }]
-  });
-  return chart;
-}
 
-// Tarefas por Responsável (Bar)
-function initRespChart() {
-  const chart = echarts.init(document.getElementById('responsavelChart'));
-  chart.setOption({
-    grid: { top: 20, bottom: 100, left: 40, right: 20 },
-    xAxis: {
-      type: 'category',
-      data: ['Maria Costas', 'João Lima', 'Paulo Santos', 'Ana Rocha'],
-      axisLine: { lineStyle: { color: '#999' } },
-      axisLabel: { fontWeight: '600' }
-    },
-    yAxis: {
-      type: 'value',
-      minInterval: 1,
-      axisLine: { show: false },
-      splitLine: { lineStyle: { color: '#eee' } }
-    },
-    series: [{
-      type: 'bar',
-      data: [3, 4, 5, 2],
-      itemStyle: { borderRadius: [8, 8, 0, 0], color: COLOR_BLUE },
-      barWidth: 40
-    }],
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: params => `${params[0].name}: ${params[0].value} tarefas`
-    }
-  });
-  return chart;
-}
+    // CONFIG
+    const API_LOGIN_URL = "http://127.0.0.1:8000/login";
+    const USE_BACKEND = true;
 
-// Progresso de Tarefas (Bar)
-function initProgChart() {
-  const chart = echarts.init(document.getElementById('progressoChart'));
-  chart.setOption({
-    grid: { top: 30, bottom: 100, left: 40, right: 20 },
-    legend: { bottom: 50, textStyle: { fontSize: 13 } },
-    xAxis: {
-      type: 'category',
-      data: ['Abril', 'Maio', 'Junho', 'Julho', 'Agosto'],
-      axisLine: { lineStyle: { color: '#999' } },
-      axisLabel: { fontWeight: '600' }
-    },
-    yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: '#eee' } } },
-    series: [
-      { name: 'Tarefas concluídas', type: 'bar', data: [0, 0, 0, 10, 0], itemStyle: { color: COLOR_GREEN, borderRadius: [4, 4, 0, 0] }, barWidth: 20 },
-      { name: 'Novas tarefas', type: 'bar', data: [0, 0, 0, 15, 5], itemStyle: { color: COLOR_RED, borderRadius: [4, 4, 0, 0] }, barWidth: 20 }
-    ],
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: params => {
-        let txt = `<b>${params[0].name}</b><br/>`;
-        params.forEach(p => txt += `${p.marker} ${p.seriesName}: ${p.value}<br/>`);
-        return txt;
+
+    const authCard = document.getElementById("authCard");
+    const loginForm = document.getElementById("loginForm");
+    const authAlert = document.getElementById("authAlert");
+    const dashboardScreen = document.getElementById("dashboardScreen");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const profileName = document.getElementById("profileName");
+    const tokenShort = document.getElementById("tokenShort");
+    const bairrosTable = document.getElementById("bairrosTable");
+    const actionCounter = document.getElementById("actionCounter");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeLabel = document.getElementById("themeLabel");
+
+
+    const demo = {
+      bairros: [
+        ["Eduardo Gomes", 2, "20%"], ["Atalaia", 2, "20%"], ["Centro", 1, "10%"], ["Jabotiana", 1, "10%"],
+        ["Ponto Novo", 1, "10%"], ["Infácio Barbosa", 1, "10%"], ["Conjunto João Alves", 1, "10%"], ["Farolândia", 1, "10%"]
+      ],
+      totalActions: 8,
+      charts: {
+        status: { labels: ["Concluído", "Em andamento", "A fazer"], values: [6, 5, 4] },
+        responsible: { labels: ["Arthur", "Bruno", "Davi", "Gabriel"], values: [5, 4, 3, 3] }
       }
+    };
+
+
+    function showAlert(msg, isError = true) {
+      authAlert.textContent = msg;
+      authAlert.style.display = "block";
+      authAlert.style.color = isError ? "#9b1c1c" : "#064e3b";
+      setTimeout(() => authAlert.style.display = "none", 5000);
     }
-  });
-  return chart;
-}
 
-// Distribuição por Sexo (Pie)
-function initSexoChart() {
-  const chart = echarts.init(document.getElementById('sexoChart'));
-  chart.setOption({
-    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    series: [{
-      type: 'pie',
-      radius: ['0%', '70%'],
-      center: ['50%', '38%'],
-      avoidLabelOverlap: true,
-      label: { show: false },
-      labelLine: { show: false },
-      data: [
-        { value: 70, name: 'Masculino', itemStyle: { color: COLOR_BLUE } },
-        { value: 30, name: 'Feminino', itemStyle: { color: COLOR_RED } }
-      ]
-    }]
-  });
-  return chart;
-}
 
-// Distribuição por Idade (Bar)
-function initIdadeChart() {
-  const chart = echarts.init(document.getElementById('idadeChart'));
-  chart.setOption({
-    xAxis: {
-      type: 'category',
-      data: ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'],
-      axisLine: { lineStyle: { color: '#999' } },
-      axisLabel: { fontWeight: '600' }
-    },
-    yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: '#eee' } } },
-    series: [{
-      type: 'bar',
-      data: [0, 4, 3, 1, 1, 1],
-      itemStyle: { color: COLOR_BLUE, borderRadius: [4, 4, 0, 0] },
-      barWidth: 70
-    }],
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: params => {
-        let txt = `<b>${params[0].name}</b><br/>`;
-        params.forEach(p => { txt += `${p.marker} ${p.seriesName || ''}: ${p.value}<br/>`; });
-        return txt;
+    function showDashboard(token, userName) {
+      profileName.textContent = userName || "Usuário";
+      tokenShort.textContent = token ? token.slice(0, 12) + "…" : "—";
+      bairrosTable.innerHTML = "";
+      demo.bairros.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td>`;
+        bairrosTable.appendChild(tr);
+      });
+      actionCounter.textContent = `${demo.totalActions} ações cadastradas`;
+
+
+      authCard.classList.add("hidden");
+      dashboardScreen.classList.remove("hidden");
+      dashboardScreen.classList.add("fade-in");
+      dashboardScreen.removeAttribute("aria-hidden");
+
+      // Recriar os gráficos após mostrar o dashboard
+      setTimeout(createCharts, 100);
+    }
+
+
+    function showLogin() {
+      dashboardScreen.classList.add("hidden");
+      dashboardScreen.setAttribute("aria-hidden", "true");
+      authCard.classList.remove("hidden");
+      localStorage.removeItem("token");
+      localStorage.removeItem("name");
+    }
+
+
+    logoutBtn.addEventListener("click", () => {
+      showLogin();
+    });
+
+
+    // THEME: lê preferencia e aplica
+    const savedTheme = localStorage.getItem("theme"); // "dark" | "light"
+    function applyTheme(theme) {
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+        themeToggle.setAttribute("aria-pressed", "true");
+        themeLabel.textContent = "Claro";
+      } else {
+        document.documentElement.classList.remove("dark");
+        themeToggle.setAttribute("aria-pressed", "false");
+        themeLabel.textContent = "Escuro";
       }
+      localStorage.setItem("theme", theme);
     }
-  });
-  return chart;
-}
+    // aplicar tema salvo (prioridade)
+    if (savedTheme) applyTheme(savedTheme);
+    else {
+      // detect system preference
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark ? "dark" : "light");
+    }
 
-// ----------------------
-// Função para inicializar mapa
-// ----------------------
-function initMap() {
-  const map = L.map('map').setView([-10.947, -37.072], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-  const acoes = [
-    { lat: -10.946, lng: -37.074, num: 1 },
-    { lat: -10.948, lng: -37.071, num: 2 },
-    { lat: -10.949, lng: -37.073, num: 3 },
-    { lat: -10.945, lng: -37.070, num: 4 },
-    { lat: -10.947, lng: -37.069, num: 5 }
-  ];
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      applyTheme(isDark ? "light" : "dark");
+    });
 
-  acoes.forEach(acao => {
-    const el = L.divIcon({ className: 'action-marker', html: acao.num, iconSize: [36, 36] });
-    L.marker([acao.lat, acao.lng], { icon: el }).addTo(map);
-  });
 
-  document.getElementById('actionCounter').textContent = `${acoes.length} ações cadastradas`;
+    window.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const name = localStorage.getItem("name");
+      if (token) {
+        showDashboard(token, name);
+      } else {
+        showLogin();
+      }
+    });
 
-  window.addEventListener('resize', () => map.invalidateSize());
-  return map;
-}
 
-// ----------------------
-// Inicialização
-// ----------------------
-const statusChart = initStatusChart();
-const respChart = initRespChart();
-const progChart = initProgChart();
-const sexoChart = initSexoChart();
-const idadeChart = initIdadeChart();
-const map = initMap();
+    loginForm.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      authAlert.style.display = "none";
 
-// Responsividade dos gráficos
-window.addEventListener('resize', () => {
-  statusChart.resize();
-  respChart.resize();
-  progChart.resize();
-  sexoChart.resize();
-  idadeChart.resize();
-});
+
+      const email = loginForm.email.value.trim();
+      const senha = loginForm.senha.value;
+
+
+      if (!email || !senha) { showAlert("Preencha e-mail e senha."); return; }
+
+
+      const btn = document.getElementById("loginBtn");
+      const prevText = btn.textContent;
+      btn.textContent = "Validando...";
+      btn.disabled = true;
+
+
+      if (USE_BACKEND) {
+        try {
+          const resp = await fetch(API_LOGIN_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, senha })
+          });
+
+
+          if (!resp.ok) {
+            if (resp.status === 401) showAlert("E-mail ou senha incorretos.");
+            else showAlert(`Erro no servidor: ${resp.status}`);
+            btn.textContent = prevText; btn.disabled = false; return;
+          }
+
+
+          const data = await resp.json();
+          const token = data.access_token || data.token || null;
+          const name = data.name || data.usuario || email.split("@")[0];
+
+
+          if (!token) { showAlert("Resposta do servidor inválida (token ausente)."); btn.textContent = prevText; btn.disabled = false; return; }
+
+
+          localStorage.setItem("token", token);
+          localStorage.setItem("name", name);
+          showDashboard(token, name);
+          btn.textContent = prevText; btn.disabled = false;
+        } catch (err) {
+          console.warn("Erro backend:", err);
+          showAlert("Falha na conexão com o servidor — usando modo demo.", false);
+          if ((email === "admin@demo.com" && senha === "demo123") || (email === "user@demo.com" && senha === "user123")) {
+            const demoToken = "demo-token-1234567890";
+            localStorage.setItem("token", demoToken);
+            localStorage.setItem("name", email.split("@")[0]);
+            showDashboard(demoToken, email.split("@")[0]);
+          } else {
+            showAlert("Não foi possível validar: verifique suas credenciais (modo demo usa admin@demo.com/demo123).");
+          }
+          btn.textContent = prevText; btn.disabled = false;
+        }
+      } else {
+        if ((email === "admin@demo.com" && senha === "demo123") || (email === "user@demo.com" && senha === "user123")) {
+          const demoToken = "local-demo-token-abcdef";
+          localStorage.setItem("token", demoToken);
+          localStorage.setItem("name", email.split("@")[0]);
+          showDashboard(demoToken, email.split("@")[0]);
+        } else {
+          showAlert("Credenciais inválidas em modo local.");
+        }
+        btn.textContent = prevText; btn.disabled = false;
+      }
+    });
+
+
+    // Mobile menu toggle
+    document.getElementById("mobileMenuBtn").addEventListener("click", () => {
+      const sb = document.querySelector(".sidebar");
+      if (sb.style.display === "none" || getComputedStyle(sb).display === "none") sb.style.display = "flex";
+      else sb.style.display = "none";
+    });
+
+
+    // Charts
+    function createCharts() {
+      try {
+        const ctx1 = document.getElementById("statusChartCanvas").getContext("2d");
+        new Chart(ctx1, {
+          type: 'doughnut',
+          data: { labels: demo.charts.status.labels, datasets: [{ data: demo.charts.status.values }] },
+          options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+        });
+        const ctx2 = document.getElementById("responsibleChartCanvas").getContext("2d");
+        new Chart(ctx2, { type: 'bar', data: { labels: demo.charts.responsible.labels, datasets: [{ label: 'Tarefas', data: demo.charts.responsible.values }] }, options: { plugins: { legend: { display: false } }, maintainAspectRatio: false } });
+      } catch (e) { console.warn("Charts failed:", e); }
+    }
