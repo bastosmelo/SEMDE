@@ -326,14 +326,14 @@
       setMascoteState("enlarge");
 
       // reinicia GIF de aumentar
-      img.src = `../z-extras/ia/aumenta.gif?${Date.now()}`;
+      img.src = `/ia/aumenta.gif?${Date.now()}`;
       setTimeout(() => setMascoteState("chat"), 360); // duração do GIF
     } else {
       iaWidget.classList.remove("open");
 
       // animação de fechar
       setMascoteState("closeAnimation");
-      img.src = `../z-extras/ia/fecha.gif?${Date.now()}`;
+      img.src = `/ia/fecha.gif?${Date.now()}`;
 
       // depois de terminar o GIF, volta para normal
       setTimeout(() => setMascoteState("normal"), 360); // ajuste conforme duração do seu GIF
