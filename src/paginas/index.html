@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -9,205 +10,15 @@
   <!-- Fonte -->
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="./css/dashboard.css">
 
   <!-- Lucide icons -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
 
-
-  <style>
-    :root{
-      --bg:#f6fbfd;
-      --card:#ffffff;
-      --muted:#6b7280;
-      --primary-1:#3968FF;
-      --primary-2:#4AD6C1;
-      --glass: rgba(255,255,255,0.65);
-      --shadow: rgba(20,20,40,0.06);
-      --accent:#10b981;
-
-
-      /* text / bg for theme switching */
-      --page-bg: var(--bg);
-      --text: #0b1220;
-      --muted-2: #6b7280;
-      --card-bg: var(--card);
-      --sidebar-bg: #ffffff;
-      --menu-hover-bg: rgba(57,104,255,0.06);
-    }
-
-
-    /* Dark theme overrides */
-    .dark {
-      --page-bg: #0b1220;
-      --text: #e6eef6;
-      --muted-2: #94a3b8;
-      --card-bg: #071127;
-      --sidebar-bg: linear-gradient(180deg,#071127,#071827);
-      --menu-hover-bg: rgba(255,255,255,0.04);
-    }
-
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:'Baloo 2',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--page-bg);color:var(--text)}
-    a{color:inherit;text-decoration:none}
-
-
-    .app {
-      min-height:100vh;
-      display:flex;
-      padding:0;
-    }
-
-
-    /* Login card */
-    .auth-card {
-      width:360px;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow: 0 6px 20px var(--shadow);
-      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
-      transition: transform 260ms ease, opacity 260ms ease, background .25s;
-      color:var(--text);
-      position: relative;
-      z-index: 10;
-    }
-    .dark .auth-card { background: linear-gradient(180deg, rgba(8,12,20,0.7), rgba(8,12,20,0.85)); }
-
-
-    .auth-header{
-      padding:26px 20px;
-      background: linear-gradient(90deg,var(--primary-1),var(--primary-2));
-      color:#fff;
-      text-align:center;
-    }
-    .auth-header h2{font-size:22px; font-weight:800}
-    .auth-header p{opacity:0.95; margin-top:6px; font-weight:500}
-
-
-    .auth-body{padding:20px}
-    .auth-body h3{text-align:center;margin-bottom:14px; font-size:18px}
-    label{display:block;font-size:13px;color:var(--muted-2); margin-bottom:6px; font-weight:500}
-    input[type="email"], input[type="password"], input[type="text"]{
-      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6eef6;
-      background: linear-gradient(180deg,#fff,#fbfeff);
-      margin-bottom:14px; font-size:14px; outline:none; transition:box-shadow .15s ease;
-      color:var(--text);
-    }
-    .dark input{ background: linear-gradient(180deg,#06101a,#07111a); border-color: rgba(255,255,255,0.06); color:var(--text); }
-
-
-    input:focus{box-shadow:0 4px 12px rgba(57,104,255,0.12); border-color:rgba(57,104,255,0.35)}
-
-
-    .row {display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px}
-    .checkbox{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted-2)}
-    .small-link{font-size:13px; color:#2563eb}
-
-
-    .btn {
-      display:inline-flex; align-items:center; justify-content:center;
-      gap:8px; width:100%; padding:12px 14px; border-radius:10px; border:none; cursor:pointer;
-      background: linear-gradient(90deg,var(--primary-1),var(--primary-2));
-      color:#fff; font-weight:700; font-size:15px; transition:transform .12s ease, opacity .12s ease;
-    }
-    .btn:active{transform:translateY(1px)}
-
-
-    .muted{font-size:12px;color:var(--muted-2); text-align:center; margin-top:12px}
-
-
-    .alert {padding:10px 12px;border-radius:8px;border:1px solid rgba(0,0,0,0.06); background:#fff9; font-size:13px; color:#9b1c1c; margin-bottom:10px; display:none}
-
-
-    /* Dashboard */
-    .dashboard {
-      width:100%;
-      min-height:100vh;
-      background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.95));
-      display:flex;
-      transition:opacity .25s ease, transform .25s ease, background .25s ease;
-      color:var(--text);
-    }
-    .dark .dashboard { background: linear-gradient(180deg, rgba(5,8,12,0.6), rgba(4,6,10,0.8)); }
-
-    .sidebar {
-      width:220px;
-      background:var(--sidebar-bg);
-      padding:16px;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      box-shadow:0 8px 28px var(--shadow);
-      border:1px solid rgba(0,0,0,0.03);
-    }
-
-
-    .profile {display:flex; gap:12px; align-items:center}
-    .profile img{width:56px;height:56px;border-radius:50%;object-fit:cover; border:2px solid rgba(0,0,0,0.04)}
-    .profile h1{font-size:15px; font-weight:700; color:var(--text)}
-    .menu{list-style:none; display:flex; flex-direction:column; gap:8px; padding-top:6px}
-    /* menu links and buttons share same visual style */
-    .menu-item {
-      display:flex; gap:10px; align-items:center; padding:10px; border-radius:10px; color:var(--muted-2); font-weight:600;
-      cursor:pointer; background:transparent; border:0; text-align:left; transition: background .14s, transform .08s, color .12s;
-      width:100%;
-    }
-    .menu-item i, .menu-item svg { width:18px;height:18px; opacity:0.95; flex-shrink:0; }
-    .menu-item span { flex:1; text-align:left; }
-
-
-    .menu-item:hover{ background: var(--menu-hover-bg); color: #0b1220; transform: translateY(-1px) }
-    .dark .menu-item:hover{ color: var(--text) }
-
-
-    .sidebar-footer { margin-top:auto; display:flex; flex-direction:column; gap:8px; }
-    .menu-btn { display:flex; gap:10px; align-items:center; padding:10px; border-radius:10px; background:transparent; border:0; color:var(--muted-2); cursor:pointer; font-weight:600; transition: background .12s, transform .08s; width:100%; text-align:left }
-    .menu-btn:hover { background: var(--menu-hover-bg); color: #0b1220; transform: translateY(-1px) }
-    .dark .menu-btn:hover { color: var(--text) }
-
-
-    .main { flex:1; padding:22px; display:flex; flex-direction:column; gap:18px }
-
-
-    .topbar {display:flex; justify-content:space-between; align-items:center; gap:12px}
-    .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:18px; margin-top:8px}
-    .card{background:var(--card-bg); border-radius:12px; padding:16px; box-shadow:0 6px 18px var(--shadow)}
-    .card h4{font-size:13px; color:var(--muted-2); margin-bottom:6px}
-    .card .num{font-size:34px; font-weight:800; color: var(--text)}
-
-
-    .charts {display:flex; gap:18px; flex-wrap:wrap}
-    .chart-card{flex:1; min-width:260px; background:var(--card-bg); border-radius:12px; padding:14px; box-shadow:0 6px 18px var(--shadow)}
-    #mapPlaceholder{width:100%; height:300px; border-radius:10px; background:linear-gradient(180deg,#eef7ff,#f6fffb); display:flex; align-items:center; justify-content:center; color:var(--muted-2); font-weight:600}
-
-
-    table{width:100%; border-collapse:collapse; border-radius:10px; overflow:hidden; background:var(--card-bg)}
-    th, td{padding:10px 12px; text-align:left; border-bottom:1px solid rgba(0,0,0,0.04); font-size:13px}
-    th{background: rgba(255,255,255,0.03); color:var(--muted-2); font-weight:700}
-
-
-    .hidden{display:none}
-    .fade-in{animation:fadeIn .28s ease both}
-    @keyframes fadeIn{from{opacity:0; transform: translateY(6px)} to{opacity:1; transform:none}}
-
-
-    @media (max-width:980px){
-      .app{padding:18px}
-      .dashboard{flex-direction:column; min-height:unset}
-      .sidebar{width:100%; display:flex; flex-direction:row; gap:10px; overflow:auto; padding:12px}
-      .sidebar .menu{flex-direction:row}
-      .main{padding:12px}
-    }
-    @media (max-width:560px){
-      .auth-card{width:100%}
-      .cards{grid-template-columns:1fr}
-      .sidebar{display:none}
-    }
-  </style>  
 </head>
+
 <body>
   <div class="app">
-
 
     <!-- Login card -->
     <main class="auth-card" id="authCard" aria-live="polite">
@@ -260,20 +71,25 @@
           </div>
         </div>
 
-
         <ul class="menu" role="menu" aria-label="Menu principal">
           <li><button class="menu-item" data-page="index"><i data-lucide="home"></i><span>Dashboard</span></button></li>
           <li><button class="menu-item" data-page="acoes"><i data-lucide="activity"></i><span>Ações</span></button></li>
-          <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i><span>Gestão de tarefas</span></button></li>
-          <li><button class="menu-item" data-page="cadastro"><i data-lucide="user-plus"></i><span>Cadastro</span></button></li>
-          <li><button class="menu-item" data-page="financeiro"><i data-lucide="dollar-sign"></i><span>Financeiro</span></button></li>
-          <li><button class="menu-item" data-page="config"><i data-lucide="settings"></i><span>Configurações</span></button></li>
+          <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i><span>Gestão de
+                tarefas</span></button></li>
+          <li><button class="menu-item" data-page="cadastro"><i
+                data-lucide="user-plus"></i><span>Cadastro</span></button></li>
+          <li><button class="menu-item" data-page="financeiro"><i
+                data-lucide="dollar-sign"></i><span>Financeiro</span></button></li>
+          <li><button class="menu-item" data-page="config"><i
+                data-lucide="settings"></i><span>Configurações</span></button></li>
         </ul>
 
 
         <div class="sidebar-footer">
-          <button id="themeToggle" class="menu-btn" aria-pressed="false"><i data-lucide="moon"></i><span id="themeLabel">Tema</span></button>
-          <button id="logoutBtn" class="menu-btn" aria-pressed="false"><i data-lucide="log-out"></i><span>Sair</span></button>
+          <button id="themeToggle" class="menu-btn" aria-pressed="false"><i data-lucide="moon"></i><span
+              id="themeLabel">Tema</span></button>
+          <button id="logoutBtn" class="menu-btn" aria-pressed="false"><i
+              data-lucide="log-out"></i><span>Sair</span></button>
         </div>
       </aside>
 
@@ -287,7 +103,8 @@
 
 
           <div style="display:flex; gap:12px; align-items:center">
-            <div style="font-size:13px; color:var(--muted-2)">Token: <span id="tokenShort" style="font-weight:700; color:var(--text)">—</span></div>
+            <div style="font-size:13px; color:var(--muted-2)">Token: <span id="tokenShort"
+                style="font-weight:700; color:var(--text)">—</span></div>
             <button id="mobileMenuBtn" class="btn" style="width:auto; padding:8px 10px">Menu</button>
           </div>
         </div>
@@ -329,7 +146,8 @@
           <div class="chart-card" style="min-width:320px">
             <h3>Mapa de Ações</h3>
             <div id="mapPlaceholder">Mapa (placeholder)</div>
-            <div style="margin-top:8px; font-size:13px; color:var(--muted-2)" id="actionCounter">0 ações cadastradas</div>
+            <div style="margin-top:8px; font-size:13px; color:var(--muted-2)" id="actionCounter">0 ações cadastradas
+            </div>
           </div>
         </section>
 
@@ -337,7 +155,11 @@
         <h3>Pessoas por Bairro</h3>
         <table aria-describedby="bairrosDesc">
           <thead>
-            <tr><th>Bairro</th><th>Quantidade</th><th>Percentual</th></tr>
+            <tr>
+              <th>Bairro</th>
+              <th>Quantidade</th>
+              <th>Percentual</th>
+            </tr>
           </thead>
           <tbody id="bairrosTable"></tbody>
         </table>
@@ -346,233 +168,14 @@
   </div>
 
 
-  <script>
-    // Espera lucide carregar e inicializa ícones
-    window.addEventListener('load', ()=> {
-      if(window.lucide) lucide.createIcons();
-    });
+  <script src="./js/dashboard.js"></script>
 
-
-    // Navegação do menu (simples, carrega outras páginas)
-    document.querySelectorAll('.menu-item').forEach(button => {
-      button.addEventListener('click', () => {
-        const page = button.dataset.page;
-        window.location.href = `../paginas/${page}.html`;
-      });
-    });
-
-
-    // CONFIG
-    const API_LOGIN_URL = "http://127.0.0.1:8000/login";
-    const USE_BACKEND = true;
-
-
-    const authCard = document.getElementById("authCard");
-    const loginForm = document.getElementById("loginForm");
-    const authAlert = document.getElementById("authAlert");
-    const dashboardScreen = document.getElementById("dashboardScreen");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const profileName = document.getElementById("profileName");
-    const tokenShort = document.getElementById("tokenShort");
-    const bairrosTable = document.getElementById("bairrosTable");
-    const actionCounter = document.getElementById("actionCounter");
-    const themeToggle = document.getElementById("themeToggle");
-    const themeLabel = document.getElementById("themeLabel");
-
-
-    const demo = {
-      bairros:[
-        ["Eduardo Gomes",2,"20%"],["Atalaia",2,"20%"],["Centro",1,"10%"],["Jabotiana",1,"10%"],
-        ["Ponto Novo",1,"10%"],["Infácio Barbosa",1,"10%"],["Conjunto João Alves",1,"10%"],["Farolândia",1,"10%"]
-      ],
-      totalActions: 8,
-      charts: {
-        status: { labels:["Concluído","Em andamento","A fazer"], values:[6,5,4] },
-        responsible: { labels:["Arthur","Bruno","Davi","Gabriel"], values:[5,4,3,3] }
-      }
-    };
-
-
-    function showAlert(msg, isError=true){
-      authAlert.textContent = msg;
-      authAlert.style.display = "block";
-      authAlert.style.color = isError ? "#9b1c1c" : "#064e3b";
-      setTimeout(()=> authAlert.style.display = "none", 5000);
-    }
-
-
-    function showDashboard(token, userName){
-      profileName.textContent = userName || "Usuário";
-      tokenShort.textContent = token ? token.slice(0,12)+"…" : "—";
-      bairrosTable.innerHTML = "";
-      demo.bairros.forEach(row=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td>`;
-        bairrosTable.appendChild(tr);
-      });
-      actionCounter.textContent = `${demo.totalActions} ações cadastradas`;
-
-
-      authCard.classList.add("hidden");
-      dashboardScreen.classList.remove("hidden");
-      dashboardScreen.classList.add("fade-in");
-      dashboardScreen.removeAttribute("aria-hidden");
-     
-      // Recriar os gráficos após mostrar o dashboard
-      setTimeout(createCharts, 100);
-    }
-
-
-    function showLogin(){
-      dashboardScreen.classList.add("hidden");
-      dashboardScreen.setAttribute("aria-hidden","true");
-      authCard.classList.remove("hidden");
-      localStorage.removeItem("token");
-      localStorage.removeItem("name");
-    }
-
-
-    logoutBtn.addEventListener("click", ()=>{
-      showLogin();
-    });
-
-
-    // THEME: lê preferencia e aplica
-    const savedTheme = localStorage.getItem("theme"); // "dark" | "light"
-    function applyTheme(theme){
-      if(theme === "dark"){
-        document.documentElement.classList.add("dark");
-        themeToggle.setAttribute("aria-pressed","true");
-        themeLabel.textContent = "Claro";
-      } else {
-        document.documentElement.classList.remove("dark");
-        themeToggle.setAttribute("aria-pressed","false");
-        themeLabel.textContent = "Escuro";
-      }
-      localStorage.setItem("theme", theme);
-    }
-    // aplicar tema salvo (prioridade)
-    if(savedTheme) applyTheme(savedTheme);
-    else {
-      // detect system preference
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyTheme(prefersDark ? "dark" : "light");
-    }
-
-
-    themeToggle.addEventListener("click", ()=>{
-      const isDark = document.documentElement.classList.contains("dark");
-      applyTheme(isDark ? "light" : "dark");
-    });
-
-
-    window.addEventListener("DOMContentLoaded", ()=>{
-      const token = localStorage.getItem("token");
-      const name = localStorage.getItem("name");
-      if(token) {
-        showDashboard(token, name);
-      } else {
-        showLogin();
-      }
-    });
-
-
-    loginForm.addEventListener("submit", async (ev)=>{
-      ev.preventDefault();
-      authAlert.style.display = "none";
-
-
-      const email = loginForm.email.value.trim();
-      const senha = loginForm.senha.value;
-
-
-      if(!email || !senha){ showAlert("Preencha e-mail e senha."); return; }
-
-
-      const btn = document.getElementById("loginBtn");
-      const prevText = btn.textContent;
-      btn.textContent = "Validando...";
-      btn.disabled = true;
-
-
-      if(USE_BACKEND){
-        try{
-          const resp = await fetch(API_LOGIN_URL, {
-            method:"POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, senha })
-          });
-
-
-          if(!resp.ok){
-            if(resp.status === 401) showAlert("E-mail ou senha incorretos.");
-            else showAlert(`Erro no servidor: ${resp.status}`);
-            btn.textContent = prevText; btn.disabled = false; return;
-          }
-
-
-          const data = await resp.json();
-          const token = data.access_token || data.token || null;
-          const name = data.name || data.usuario || email.split("@")[0];
-
-
-          if(!token){ showAlert("Resposta do servidor inválida (token ausente)."); btn.textContent = prevText; btn.disabled = false; return; }
-
-
-          localStorage.setItem("token", token);
-          localStorage.setItem("name", name);
-          showDashboard(token, name);
-          btn.textContent = prevText; btn.disabled = false;
-        } catch(err){
-          console.warn("Erro backend:", err);
-          showAlert("Falha na conexão com o servidor — usando modo demo.", false);
-          if((email === "admin@demo.com" && senha === "demo123") || (email === "user@demo.com" && senha === "user123")){
-            const demoToken = "demo-token-1234567890";
-            localStorage.setItem("token", demoToken);
-            localStorage.setItem("name", email.split("@")[0]);
-            showDashboard(demoToken, email.split("@")[0]);
-          } else {
-            showAlert("Não foi possível validar: verifique suas credenciais (modo demo usa admin@demo.com/demo123).");
-          }
-          btn.textContent = prevText; btn.disabled = false;
-        }
-      } else {
-        if((email === "admin@demo.com" && senha === "demo123") || (email === "user@demo.com" && senha === "user123")){
-          const demoToken = "local-demo-token-abcdef";
-          localStorage.setItem("token", demoToken);
-          localStorage.setItem("name", email.split("@")[0]);
-          showDashboard(demoToken, email.split("@")[0]);
-        } else {
-          showAlert("Credenciais inválidas em modo local.");
-        }
-        btn.textContent = prevText; btn.disabled = false;
-      }
-    });
-
-
-    // Mobile menu toggle
-    document.getElementById("mobileMenuBtn").addEventListener("click", ()=>{
-      const sb = document.querySelector(".sidebar");
-      if(sb.style.display === "none" || getComputedStyle(sb).display === "none") sb.style.display = "flex";
-      else sb.style.display = "none";
-    });
-
-
-    // Charts
-    function createCharts(){
-      try{
-        const ctx1 = document.getElementById("statusChartCanvas").getContext("2d");
-        new Chart(ctx1, {
-          type: 'doughnut',
-          data: { labels: demo.charts.status.labels, datasets:[{data:demo.charts.status.values}]},
-          options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio:false }
-        });
-        const ctx2 = document.getElementById("responsibleChartCanvas").getContext("2d");
-        new Chart(ctx2, { type:'bar', data:{ labels: demo.charts.responsible.labels, datasets:[{label:'Tarefas', data: demo.charts.responsible.values}]}, options:{plugins:{legend:{display:false}}, maintainAspectRatio:false} });
-      }catch(e){ console.warn("Charts failed:", e); }
-    }
-  </script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- script da ia -->
+  <script src="./ia/ia-loader.js"></script>
+
 </body>
+
 </html>
