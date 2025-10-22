@@ -1,3 +1,53 @@
+// ===== FUNÇÃO PARA LER DADOS DAS TAREFAS =====
+function getTaskData() {
+    const data = {
+        total: 0,
+        todo: 0,
+        doing: 0,
+        done: 0,
+        tasks: []
+    };
+
+    // Lê os contadores principais
+    data.total = parseInt(document.getElementById('totalTasks')?.textContent || 0);
+    data.todo = parseInt(document.getElementById('todoTasks')?.textContent || 0);
+    data.doing = parseInt(document.getElementById('doingTasks')?.textContent || 0);
+    data.done = parseInt(document.getElementById('doneTasks')?.textContent || 0);
+
+    // Coleta todas as tarefas individuais
+    const taskCards = document.querySelectorAll('.task-card');
+    
+    taskCards.forEach((card, index) => {
+        const title = card.querySelector('.task-title')?.textContent || 'Sem título';
+        const description = card.querySelector('.task-description')?.textContent || '';
+        const type = card.querySelector('.task-type')?.textContent || 'Geral';
+        const priority = card.querySelector('.task-badge')?.textContent || 'Média';
+        const date = card.querySelector('.task-date')?.textContent || '';
+        
+        // Determina a coluna (status)
+        const column = card.closest('.kanban-column');
+        let status = 'desconhecido';
+        if (column) {
+            const header = column.querySelector('.column-header h2')?.textContent;
+            if (header?.includes('fazer')) status = 'a fazer';
+            else if (header?.includes('andamento')) status = 'em andamento';
+            else if (header?.includes('Concluído')) status = 'concluído';
+        }
+
+        data.tasks.push({
+            id: index + 1,
+            title,
+            description,
+            type,
+            priority: priority.toLowerCase(),
+            date,
+            status
+        });
+    });
+
+    return data;
+}
+
 (function () {
   // ===== CONFIGURAÇÃO =====
   const SERVER_URL = "http://localhost:3000/chat"; // seu servidor IA real
@@ -69,6 +119,48 @@
       reply: "Posso te ajudar a navegar pelas seções do site e responder perguntas sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição e Configuração.",
       options: [],
       name: "Funções"
+    },
+    {
+        keys: ["total de tarefas", "quantas tarefas no total", "quantas tarefas tenho"],
+        reply: "",
+        options: [],
+        name: "TotalTarefas",
+        dynamicReply: true
+    },
+    {
+        keys: ["tarefas a fazer", "quantas tarefas a fazer", "tarefas pendentes"],
+        reply: "",
+        options: [],
+        name: "TarefasAFazer", 
+        dynamicReply: true
+    },
+    {
+        keys: ["tarefas em andamento", "quantas tarefas em andamento", "tarefas fazendo"],
+        reply: "",
+        options: [],
+        name: "TarefasEmAndamento",
+        dynamicReply: true
+    },
+    {
+        keys: ["tarefas concluídas", "quantas tarefas concluídas", "tarefas finalizadas"],
+        reply: "",
+        options: [],
+        name: "TarefasConcluidas",
+        dynamicReply: true
+    },
+    {
+        keys: ["dados das tarefas", "listar tarefas", "todas as tarefas", "quais são as tarefas"],
+        reply: "",
+        options: [],
+        name: "ListarTarefas",
+        dynamicReply: true
+    },
+    {
+        keys: ["resumo das tarefas", "status das tarefas", "como estão as tarefas"],
+        reply: "",
+        options: [],
+        name: "ResumoTarefas",
+        dynamicReply: true
     }
   ];
 
@@ -136,37 +228,140 @@
     optionsEl.style.display = "flex";
   }
 
-  function matchIntent(text) {
-    const t = (text || "").toLowerCase();
+// Função melhorada para matching de palavras-chave
+function matchIntent(text) {
+    const t = (text || "").toLowerCase().trim();
+    
+    // Verifica palavras específicas sobre tarefas primeiro
+    const taskKeywords = ['tarefa', 'tarefas', 'task', 'tasks'];
+    const hasTaskKeyword = taskKeywords.some(keyword => t.includes(keyword));
+    
+    if (hasTaskKeyword) {
+        if (t.includes('total') || t.includes('quantas') && (t.includes('todas') || t.includes('no total'))) {
+            return intents.find(i => i.name === "TotalTarefas");
+        }
+        if (t.includes('fazer') || t.includes('pendente')) {
+            return intents.find(i => i.name === "TarefasAFazer");
+        }
+        if (t.includes('andamento') || t.includes('fazendo')) {
+            return intents.find(i => i.name === "TarefasEmAndamento");
+        }
+        if (t.includes('concluída') || t.includes('finalizada') || t.includes('pronta')) {
+            return intents.find(i => i.name === "TarefasConcluidas");
+        }
+        if (t.includes('lista') || t.includes('quais') || t.includes('dados')) {
+            return intents.find(i => i.name === "ListarTarefas");
+        }
+        if (t.includes('resumo') || t.includes('status') || t.includes('como estão')) {
+            return intents.find(i => i.name === "ResumoTarefas");
+        }
+    }
+    
+    // Matching normal para outros intents
     for (const intent of intents) {
-      for (const key of intent.keys) {
-        if (t.includes(key.toLowerCase())) return intent;
-      }
+        for (const key of intent.keys) {
+            if (t.includes(key.toLowerCase())) return intent;
+        }
     }
     return null;
-  }
-
-  function fallbackResponder(text) {
+}
+function fallbackResponder(text) {
     const intent = matchIntent(text);
+    
+    if (intent && intent.dynamicReply) {
+        const taskData = getTaskData();
+        
+        switch(intent.name) {
+            case "Saudação":
+                const hour = new Date().getHours();
+                if (hour < 12)
+                    return { 
+                        reply: "Bom dia! 😊 Estou aqui para te ajudar. Você pode me perguntar sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição ou Configuração.",
+                        options: []
+                    };
+                else if (hour < 18)
+                    return { 
+                        reply: "Boa tarde! 😊 Estou aqui para te ajudar. Você pode me perguntar sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição ou Configuração.",
+                        options: []
+                    };
+                else
+                    return { 
+                        reply: "Boa noite! 😊 Estou aqui para te ajudar. Você pode me perguntar sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição ou Configuração.",
+                        options: []
+                    };
 
+            case "TotalTarefas":
+                return {
+                    reply: `Você tem ${taskData.total} tarefas no total. 📊`,
+                    options: []
+                };
+
+            case "TarefasAFazer":
+                return {
+                    reply: `Você tem ${taskData.todo} tarefas para fazer. 📝`,
+                    options: []
+                };
+
+            case "TarefasEmAndamento":
+                return {
+                    reply: `Você tem ${taskData.doing} tarefas em andamento. 🔄`,
+                    options: []
+                };
+
+            case "TarefasConcluidas":
+                return {
+                    reply: `Você tem ${taskData.done} tarefas concluídas. ✅`,
+                    options: []
+                };
+
+            case "ResumoTarefas":
+                return {
+                    reply: `📊 **Resumo das suas tarefas:**\n\n• Total: ${taskData.total} tarefas\n• A fazer: ${taskData.todo}\n• Em andamento: ${taskData.doing}\n• Concluídas: ${taskData.done}`,
+                    options: []
+                };
+
+            case "ListarTarefas":
+                if (taskData.tasks.length === 0) {
+                    return {
+                        reply: "Não encontrei nenhuma tarefa no momento. 📭",
+                        options: []
+                    };
+                }
+                
+                let taskList = "📋 **Suas tarefas:**\n\n";
+                taskData.tasks.forEach(task => {
+                    const emoji = {
+                        'a fazer': '📝',
+                        'em andamento': '🔄', 
+                        'concluído': '✅'
+                    }[task.status] || '📌';
+                    
+                    taskList += `${emoji} **${task.title}**\n`;
+                    taskList += `   📌 Tipo: ${task.type}\n`;
+                    taskList += `   ⚡ Prioridade: ${task.priority}\n`;
+                    taskList += `   📅 Data: ${task.date}\n`;
+                    taskList += `   🎯 Status: ${task.status}\n\n`;
+                });
+                
+                return {
+                    reply: taskList,
+                    options: []
+                };
+        }
+        
+        // Se for outro dynamicReply, usa a reply padrão do intent
+        return { reply: intent.reply, options: intent.options };
+    }
+    
     if (intent) {
-      if (intent.dynamicReply) {
-        const hour = new Date().getHours();
-        if (hour < 12)
-          intent.reply = "Bom dia! 😊 Estou aqui para te ajudar. Você pode me perguntar sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição ou Configuração.";
-        else if (hour < 18)
-          intent.reply = "Boa tarde! 😊 Estou aqui para te ajudar. Você pode me perguntar sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição ou Configuração.";
-        else
-          intent.reply = "Boa noite! 😊 Estou aqui para te ajudar. Você pode me perguntar sobre Dashboard, Ações, Tarefas, Cadastro, Financeiro, Eleição ou Configuração.";
-      }
-      return { reply: intent.reply, options: intent.options };
+        return { reply: intent.reply, options: intent.options };
     }
 
     return {
-      reply: "Desculpe, não entendi direito. Pode explicar de outro jeito? 😊",
-      options: []
+        reply: "Desculpe, não entendi direito. Pode explicar de outro jeito? 😊",
+        options: []
     };
-  }
+}
 
   async function callServer(message) {
     const controller = new AbortController();
@@ -277,23 +472,23 @@
     switch (state) {
       case "normal":
         mascote.classList.add("normal");
-        img.src = "/ia/parado.png";
+        img.src = "../docs/ia/parado.png";
         break;
       case "chat":
         mascote.classList.add("chat");
-        img.src = "/ia/normal.gif";
+        img.src = "../docs/ia/normal.gif";
         break;
       case "talking":
         mascote.classList.add("talking");
-        img.src = "/ia/fala.gif";
+        img.src = "../docs/ia/fala.gif";
         break;
       case "enlarge":
         mascote.classList.add("enlarge");
-        img.src = "/ia/aumenta.gif";
+        img.src = "../docs/ia/aumenta.gif";
         break;
       case "closeAnimation":
         mascote.classList.add("closeAnimation");
-        img.src = "/ia/fecha.gif"; // GIF tirando os óculos
+        img.src = "../docs/ia/fecha.gif"; // GIF tirando os óculos
         break;
     }
   }
@@ -326,14 +521,14 @@
       setMascoteState("enlarge");
 
       // reinicia GIF de aumentar
-      img.src = `/ia/aumenta.gif?${Date.now()}`;
+      img.src = `../docs/ia/aumenta.gif?${Date.now()}`;
       setTimeout(() => setMascoteState("chat"), 360); // duração do GIF
     } else {
       iaWidget.classList.remove("open");
 
       // animação de fechar
       setMascoteState("closeAnimation");
-      img.src = `/ia/fecha.gif?${Date.now()}`;
+      img.src = `../docs/ia/fecha.gif?${Date.now()}`;
 
       // depois de terminar o GIF, volta para normal
       setTimeout(() => setMascoteState("normal"), 360); // ajuste conforme duração do seu GIF
