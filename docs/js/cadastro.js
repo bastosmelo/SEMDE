@@ -9,7 +9,7 @@ window.addEventListener('load', () => {
 document.querySelectorAll('.menu-item').forEach(button => {
     button.addEventListener('click', () => {
         const page = button.dataset.page;
-        window.location.href = `../docs/${page}.html`;
+        window.location.href = `${page}.html`;
     });
 });
 

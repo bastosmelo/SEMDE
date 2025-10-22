@@ -472,23 +472,23 @@ function fallbackResponder(text) {
     switch (state) {
       case "normal":
         mascote.classList.add("normal");
-        img.src = "../ia/parado.png";
+        img.src = "ia/parado.png";
         break;
       case "chat":
         mascote.classList.add("chat");
-        img.src = "../ia/normal.gif";
+        img.src = "ia/normal.gif";
         break;
       case "talking":
         mascote.classList.add("talking");
-        img.src = "../ia/fala.gif";
+        img.src = "ia/fala.gif";
         break;
       case "enlarge":
         mascote.classList.add("enlarge");
-        img.src = "../ia/aumenta.gif";
+        img.src = "ia/aumenta.gif";
         break;
       case "closeAnimation":
         mascote.classList.add("closeAnimation");
-        img.src = "../ia/fecha.gif"; // GIF tirando os óculos
+        img.src = "ia/fecha.gif"; // GIF tirando os óculos
         break;
     }
   }
@@ -521,14 +521,14 @@ function fallbackResponder(text) {
       setMascoteState("enlarge");
 
       // reinicia GIF de aumentar
-      img.src = `../ia/aumenta.gif?${Date.now()}`;
+      img.src = `ia/aumenta.gif?${Date.now()}`;
       setTimeout(() => setMascoteState("chat"), 360); // duração do GIF
     } else {
       iaWidget.classList.remove("open");
 
       // animação de fechar
       setMascoteState("closeAnimation");
-      img.src = `../ia/fecha.gif?${Date.now()}`;
+      img.src = `ia/fecha.gif?${Date.now()}`;
 
       // depois de terminar o GIF, volta para normal
       setTimeout(() => setMascoteState("normal"), 360); // ajuste conforme duração do seu GIF
