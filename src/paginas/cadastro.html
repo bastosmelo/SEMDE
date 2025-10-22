@@ -1,188 +1,623 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sidebar Fixo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro • Dashboard</title>
 
-  <!-- Fonte e Ícones -->
+  <!-- Fonte -->
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide icons -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
 
   <style>
-    :root {
-      --bg: #f6fbfd;
-      --card: #ffffff;
-      --muted: #6b7280;
-      --primary-1: #3968FF;
-      --primary-2: #4AD6C1;
+    :root{
+      --bg:#f6fbfd;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --primary-1:#3968FF;
+      --primary-2:#4AD6C1;
+      --glass: rgba(255,255,255,0.65);
       --shadow: rgba(20,20,40,0.06);
+      --accent:#10b981;
 
+      /* text / bg for theme switching */
       --page-bg: var(--bg);
       --text: #0b1220;
       --muted-2: #6b7280;
+      --card-bg: var(--card);
       --sidebar-bg: #ffffff;
       --menu-hover-bg: rgba(57,104,255,0.06);
     }
 
+    /* Dark theme overrides */
     .dark {
-      --page-bg: #071127;
+      --page-bg: #0b1220;
       --text: #e6eef6;
       --muted-2: #94a3b8;
-      --sidebar-bg: linear-gradient(180deg, #071127, #071827);
-      --menu-hover-bg: rgba(255,255,255,0.05);
+      --card-bg: #071127;
+      --sidebar-bg: linear-gradient(180deg,#071127,#071827);
+      --menu-hover-bg: rgba(255,255,255,0.04);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:'Baloo 2',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--page-bg);color:var(--text)}
+    a{color:inherit;text-decoration:none}
 
-    html, body {
-      height: 100%;
-      font-family: 'Baloo 2', system-ui, Segoe UI, Roboto;
-      background: var(--page-bg);
-      color: var(--text);
+    .app {
+      min-height:100vh;
+      display:flex;
+      padding:0;
     }
 
-    /* SIDEBAR FIXO */
+    /* Dashboard */
+    .dashboard {
+      width:100%;
+      min-height:100vh;
+      background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.95));
+      display:flex;
+      transition:opacity .25s ease, transform .25s ease, background .25s ease;
+      color:var(--text);
+    }
+    .dark .dashboard { background: linear-gradient(180deg, rgba(5,8,12,0.6), rgba(4,6,10,0.8)); }
+
     .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: 250px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid rgba(0,0,0,0.05);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 4px 0 20px var(--shadow);
-      transition: all 0.3s ease;
-      z-index: 100;
+      width:220px;
+      background:var(--sidebar-bg);
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      box-shadow:0 8px 28px var(--shadow);
+      border:1px solid rgba(0,0,0,0.03);
     }
 
-    .profile {
+    .profile {display:flex; gap:12px; align-items:center}
+    .profile img{width:56px;height:56px;border-radius:50%;object-fit:cover; border:2px solid rgba(0,0,0,0.04)}
+    .profile h1{font-size:15px; font-weight:700; color:var(--text)}
+    .menu{list-style:none; display:flex; flex-direction:column; gap:8px; padding-top:6px}
+    /* menu links and buttons share same visual style */
+    .menu-item {
+      display:flex; gap:10px; align-items:center; padding:10px; border-radius:10px; color:var(--muted-2); font-weight:600;
+      cursor:pointer; background:transparent; border:0; text-align:left; transition: background .14s, transform .08s, color .12s;
+      width:100%;
+    }
+    .menu-item i, .menu-item svg { width:18px;height:18px; opacity:0.95; flex-shrink:0; }
+    .menu-item span { flex:1; text-align:left; }
+
+    .menu-item:hover{ background: var(--menu-hover-bg); color: #0b1220; transform: translateY(-1px) }
+    .dark .menu-item:hover{ color: var(--text) }
+
+    .sidebar-footer { margin-top:auto; display:flex; flex-direction:column; gap:8px; }
+    .menu-btn { display:flex; gap:10px; align-items:center; padding:10px; border-radius:10px; background:transparent; border:0; color:var(--muted-2); cursor:pointer; font-weight:600; transition: background .12s, transform .08s; width:100%; text-align:left }
+    .menu-btn:hover { background: var(--menu-hover-bg); color: #0b1220; transform: translateY(-1px) }
+    .dark .menu-btn:hover { color: var(--text) }
+
+    .main { flex:1; padding:22px; display:flex; flex-direction:column; gap:18px }
+
+    .topbar {display:flex; justify-content:space-between; align-items:center; gap:12px}
+    .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:18px; margin-top:8px}
+    .card{background:var(--card-bg); border-radius:12px; padding:16px; box-shadow:0 6px 18px var(--shadow)}
+    .card h4{font-size:13px; color:var(--muted-2); margin-bottom:6px}
+    .card .num{font-size:34px; font-weight:800; color: var(--text)}
+
+    .panel {
+      background:var(--card-bg);
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 10px 30px var(--shadow);
+      border:1px solid rgba(0,0,0,0.03);
+      margin-bottom:18px;
+    }
+
+    .panel h2 {
+      font-size:18px;
+      font-weight:700;
+      margin-bottom:16px;
+      color:var(--text);
+    }
+
+    /* buttons (primary / outline / danger / icon) */
+    .btn { 
+      display:inline-flex; gap:8px; align-items:center; justify-content:center; 
+      padding:10px 12px; border-radius:8px; cursor:pointer; font-weight:700; border:0;
+      transition:transform .12s ease, opacity .12s ease;
+      font-size:14px;
+    }
+    .btn svg{width:14px;height:14px}
+    .btn-primary { 
+      background:linear-gradient(90deg,var(--primary-1),var(--primary-2)); 
+      color:#fff;
+    }
+    .btn-outline { 
+      background:transparent; 
+      border:1px solid rgba(0,0,0,0.06); 
+      color:var(--muted-2);
+    }
+    .btn-danger { 
+      background:#ef4444; 
+      color:#fff;
+    }
+    .btn-secondary { 
+      background:#e6eef6; 
+      color:#0b1220;
+    }
+    .btn-icon { 
+      background:transparent; 
+      border:1px solid rgba(0,0,0,0.06); 
+      padding:8px; 
+      border-radius:8px; 
+      display:inline-flex; 
+      align-items:center; 
+      justify-content:center;
+    }
+    
+    /* Botão Menu com estilo da página Login - Dashboard */
+    #mobileMenuBtn {
+      display:inline-flex; 
+      align-items:center; 
+      justify-content:center;
+      gap:8px; 
+      width:auto; 
+      padding:8px 10px; 
+      border-radius:10px; 
+      border:none; 
+      cursor:pointer;
+      background: linear-gradient(90deg,var(--primary-1),var(--primary-2));
+      color:#fff; 
+      font-weight:700; 
+      font-size:15px; 
+      transition:transform .12s ease, opacity .12s ease;
+    }
+    .btn:active{transform:translateY(1px)}
+
+    /* Heat Map Styles */
+    .heat-map-container {
+      height:400px;
+      border-radius:12px;
+      overflow:hidden;
+      background:var(--card-bg);
+      box-shadow:0 6px 18px var(--shadow);
+      border:1px solid rgba(0,0,0,0.03);
+      position:relative;
+    }
+
+    .map-header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      margin-bottom: 16px;
     }
 
-    .profile img {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid rgba(0,0,0,0.04);
+    .map-controls {
+      display:flex;
+      gap:8px;
     }
 
-    .profile h1 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
+    .map-active {
+      background:linear-gradient(90deg,var(--primary-1),var(--primary-2)) !important;
+      color:#fff !important;
     }
 
-    .profile small {
-      display: block;
-      color: var(--muted-2);
-      font-size: 12px;
-    }
-
-    .menu {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .menu-item, .menu-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 10px;
-      color: var(--muted-2);
-      background: transparent;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .14s, transform .08s, color .12s;
+    /* Google Maps container */
+    .google-map-container {
+      height: 100%;
       width: 100%;
-      text-align: left;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
-    .menu-item:hover, .menu-btn:hover {
-      background: var(--menu-hover-bg);
-      color: var(--text);
-      transform: translateX(3px);
+    /* Form styles */
+    .registry-section {
+      background:var(--card-bg);
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 10px 30px var(--shadow);
+      border:1px solid rgba(0,0,0,0.03);
+      margin-bottom:18px;
     }
 
-    .menu-item i, .menu-btn i {
-      width: 18px;
-      height: 18px;
+    .form-group {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:14px;
     }
 
-    .sidebar-footer {
-      margin-top: auto;
-      border-top: 1px solid rgba(0,0,0,0.06);
-      padding-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .form-row {
+      display:flex;
+      gap:12px;
+      margin-bottom:14px;
     }
 
-    /* CONTEÚDO PRINCIPAL */
-    main {
-      margin-left: 250px;
-      padding: 40px;
-      transition: background 0.3s;
+    .form-row .form-group {
+      flex:1;
+      margin-bottom:0;
     }
 
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        border-radius: 0;
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select, textarea {
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #e6eef6;
+      background: linear-gradient(180deg,#fff,#fbfeff);
+      font-size:14px;
+      outline:none;
+      transition:box-shadow .15s ease;
+      color:var(--text);
+      width:100%;
+    }
+
+    textarea {
+      resize:vertical;
+      min-height:80px;
+    }
+
+    .dark input, .dark select, .dark textarea {
+      background: linear-gradient(180deg,#06101a,#07111a);
+      border-color: rgba(255,255,255,0.06);
+      color:var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      box-shadow:0 4px 12px rgba(57,104,255,0.12);
+      border-color:rgba(57,104,255,0.35);
+    }
+
+    /* Table styles */
+    table {
+      width:100%;
+      border-collapse:collapse;
+      background:var(--card-bg);
+      border-radius:10px;
+      overflow:hidden;
+      box-shadow:0 6px 18px var(--shadow);
+      margin-top:16px;
+    }
+
+    th, td {
+      padding:12px 14px;
+      text-align:left;
+      border-bottom:1px solid rgba(0,0,0,0.04);
+      font-size:13px;
+    }
+
+    th {
+      background: rgba(255,255,255,0.03);
+      color:var(--muted-2);
+      font-weight:700;
+    }
+
+    /* Badge styles */
+    .badge {
+      padding:4px 8px;
+      border-radius:6px;
+      font-size:11px;
+      font-weight:600;
+    }
+
+    .badge.active {
+      background:#d1fae5;
+      color:#059669;
+    }
+
+    .badge.inactive {
+      background:#fef3c7;
+      color:#d97706;
+    }
+
+    .actions {
+      display:flex;
+      gap:8px;
+    }
+
+    /* Loading state */
+    .loading {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:40px;
+      color:var(--muted-2);
+    }
+
+    .loading-spinner {
+      width:20px;
+      height:20px;
+      border:2px solid var(--muted-2);
+      border-top:2px solid var(--primary-1);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin-right:10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden{display:none}
+    .fade-in{animation:fadeIn .28s ease both}
+    @keyframes fadeIn{from{opacity:0; transform: translateY(6px)} to{opacity:1; transform:none}}
+
+    @media (max-width:980px){
+      .app{padding:0}
+      .dashboard{flex-direction:column; min-height:unset}
+      .sidebar{width:100%; display:flex; flex-direction:row; gap:10px; overflow:auto; padding:12px}
+      .sidebar .menu{flex-direction:row}
+      .main{padding:12px}
+      table {
+        overflow-x: auto;
+        display: block;
       }
-      main {
-        margin-left: 0;
-        padding: 20px;
+      .actions {
+        flex-direction: column;
+      }
+      .heat-map-container {
+        height:300px;
+      }
+      .form-row {
+        flex-direction: column;
+      }
+      .map-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .map-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+    @media (max-width:560px){
+      .sidebar{display:none}
+      .map-controls {
+        flex-direction: column;
       }
     }
   </style>
 </head>
 
 <body>
-  <aside class="sidebar" role="navigation" aria-label="Menu principal">
-    <div class="profile">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="perfil">
-      <div>
-        <h1 id="profileName">Usuário</h1>
-        <small id="profileStatus">Online</small>
-      </div>
-    </div>
+  <div class="app">
+    <!-- Dashboard -->
+    <section class="dashboard" id="dashboardScreen">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" role="navigation" aria-label="Navegação">
+        <div class="profile">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="perfil">
+          <div>
+            <h1 id="profileName">Usuário</h1>
+            <small id="profileStatus">Online</small>
+          </div>
+        </div>
 
-    <ul class="menu">
-      <li><button class="menu-item" data-page="index"><i data-lucide="home"></i>Dashboard</button></li>
-      <li><button class="menu-item" data-page="acoes"><i data-lucide="activity"></i>Ações</button></li>
-      <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i>Tarefas</button></li>
-      <li><button class="menu-item" data-page="cadastro"><i data-lucide="user-plus"></i>Cadastro</button></li>
-      <li><button class="menu-item" data-page="financeiro"><i data-lucide="dollar-sign"></i>Financeiro</button></li>
-      <li><button class="menu-item" data-page="config"><i data-lucide="settings"></i>Configurações</button></li>
-    </ul>
+        <ul class="menu" role="menu" aria-label="Menu principal">
+          <li><button class="menu-item" data-page="index"><i data-lucide="home"></i><span>Dashboard</span></button></li>
+          <li><button class="menu-item" data-page="acoes"><i data-lucide="activity"></i><span>Ações</span></button></li>
+          <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i><span>Gestão de tarefas</span></button></li>
+          <li><button class="menu-item" data-page="cadastro"><i data-lucide="user-plus"></i><span>Cadastro</span></button></li>
+          <li><button class="menu-item" data-page="financeiro"><i data-lucide="dollar-sign"></i><span>Financeiro</span></button></li>
+          <li><button class="menu-item" data-page="config"><i data-lucide="settings"></i><span>Configurações</span></button></li>
+        </ul>
 
-    <div class="sidebar-footer">
-      <button id="themeToggle" class="menu-btn"><i data-lucide="moon"></i><span id="themeLabel">Tema</span></button>
-      <button id="logoutBtn" class="menu-btn"><i data-lucide="log-out"></i><span>Sair</span></button>
-    </div>
-  </aside>
+        <div class="sidebar-footer">
+          <button id="themeToggle" class="menu-btn" aria-pressed="false"><i data-lucide="moon"></i><span id="themeLabel">Tema</span></button>
+          <button id="logoutBtn" class="menu-btn" aria-pressed="false"><i data-lucide="log-out"></i><span>Sair</span></button>
+        </div>
+      </aside>
 
-  <main>
-    <h1>Bem-vindo ao sistema</h1>
-    <p>Cadastro será feito aqui.</p>
-  </main>
+      <main class="main" id="mainContent">
+        <div class="topbar">
+          <div>
+            <h2 style="margin-bottom:6px">Cadastro • Contatos</h2>
+            <div style="color:var(--muted-2); font-size:13px">Cadastre novos contatos e gerencie informações</div>
+          </div>
+
+          <div style="display:flex; gap:12px; align-items:center">
+            <div style="font-size:13px; color:var(--muted-2)">Token: <span id="tokenShort" style="font-weight:700; color:var(--text)">—</span></div>
+            <button id="mobileMenuBtn" class="btn">Menu</button>
+          </div>
+        </div>
+
+        <!-- Cards de estatísticas -->
+        <section class="cards">
+          <article class="card">
+            <h4>Total de Contatos</h4>
+            <div class="num" id="totalContacts">24</div>
+          </article>
+          <article class="card">
+            <h4>Novos Hoje</h4>
+            <div class="num" id="newToday">3</div>
+          </article>
+          <article class="card">
+            <h4>Ativos</h4>
+            <div class="num" id="activeContacts">18</div>
+          </article>
+          <article class="card">
+            <h4>Cidades</h4>
+            <div class="num" id="totalCities">8</div>
+          </article>
+        </section>
+
+        <!-- Seção de Novo Cadastro (inicialmente oculta) -->
+        <div id="novoCadastroSection" class="panel registry-section" style="display:none">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>Novo Cadastro</h2>
+            <button class="btn btn-outline" onclick="fecharNovoCadastro()">
+              <i data-lucide="x"></i> Fechar
+            </button>
+          </div>
+          
+          <form id="formNovoCadastro">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nome Completo *</label>
+                <input type="text" id="nomeCompleto" placeholder="Digite o nome completo" required>
+              </div>
+              <div class="form-group">
+                <label>Idade</label>
+                <input type="number" id="idade" placeholder="Idade" min="0" max="120">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Sexo</label>
+                <select id="sexo">
+                  <option value="">Selecione</option>
+                  <option>Masculino</option>
+                  <option>Feminino</option>
+                  <option>Outro</option>
+                  <option>Prefiro não informar</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="email" placeholder="exemplo@email.com">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Celular *</label>
+                <input type="tel" id="celular" placeholder="(11) 99999-9999" required>
+              </div>
+              <div class="form-group">
+                <label>Município *</label>
+                <select id="municipio" required>
+                  <option value="">Selecione o município</option>
+                  <option>Aracaju</option>
+                  <option>Laranjeiras</option>
+                  <option>Nossa Senhora do Socorro</option>
+                  <option>São Crióvão</option>
+                  <option>Estância</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Bairro *</label>
+                <input type="text" id="bairro" placeholder="Nome do bairro" required>
+              </div>
+              <div class="form-group">
+                <label>Escolaridade</label>
+                <select id="escolaridade">
+                  <option value="">Selecione</option>
+                  <option>Fundamental Incompleto</option>
+                  <option>Fundamental Completo</option>
+                  <option>Médio Incompleto</option>
+                  <option>Médio Completo</option>
+                  <option>Superior Incompleto</option>
+                  <option>Superior Completo</option>
+                  <option>Pós-graduação</option>
+                  <option>Mestrado</option>
+                  <option>Doutorado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Assessor Parlamentar</label>
+                <input type="text" id="assessor" placeholder="Nome do assessor">
+              </div>
+              <div class="form-group">
+                <label>Assunto</label>
+                <select id="assunto">
+                  <option value="">Selecione o assunto</option>
+                  <option>Reclamação</option>
+                  <option>Sugestão</option>
+                  <option>Elogio</option>
+                  <option>Informação</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Observação</label>
+              <textarea id="observacao" placeholder="Observações adicionais..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+              <button type="button" class="btn btn-outline" onclick="fecharNovoCadastro()">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar Cadastro</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Heat Map Section -->
+        <div id="heatMapSection" class="panel">
+          <div class="map-header">
+            <h2>Distribuição Geográfica</h2>
+            <div class="map-controls">
+              <button id="btnPontos" class="btn btn-primary" onclick="mostrarPontosIndividuais()">
+                <i data-lucide="map-pin"></i> Pontos Individuais
+              </button>
+              <button id="btnBairros" class="btn btn-outline" onclick="mostrarContadoresBairro()">
+                <i data-lucide="layers"></i> Contadores por Bairro
+              </button>
+              <button id="btnCalor" class="btn btn-outline" onclick="mostrarMapaCalor()">
+                <i data-lucide="thermometer"></i> Mapa de Calor
+              </button>
+            </div>
+          </div>
+          
+          <div class="heat-map-container">
+            <div id="mapVisualization" class="google-map-container">
+              <!-- Google Maps será carregado aqui -->
+              <iframe
+                id="googleMap"
+                src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d9317.413902350807!2d-37.07853473465079!3d-10.92631229130945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1spt-BR!2sbr!4v1758216126272!5m2!1spt-BR!2sbr"
+                width="100%" 
+                height="100%" 
+                style="border:0;" 
+                allowfullscreen="" 
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacts Table Section -->
+        <div id="contactsTableSection" class="panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2>Lista de Contatos</h2>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-primary" onclick="abrirNovoCadastro()">
+                <i data-lucide="user-plus"></i> Novo Contato
+              </button>
+              <button class="btn btn-outline" onclick="exportContacts()">
+                <i data-lucide="download"></i> Exportar
+              </button>
+            </div>
+          </div>
+          
+          <div style="overflow-x: auto;">
+            <table id="contactsTable">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Telefone</th>
+                  <th>Cidade</th>
+                  <th>Bairro</th>
+                  <th>Status</th>
+                  <th>Data Cadastro</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="contactsTableBody">
+                <!-- Contatos serão carregados aqui -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </section>
+  </div>
 
   <script>
     // inicializa lucide icons quando disponível
@@ -193,45 +628,390 @@
     /* ================= CONFIG ================= */
     // Navegação do menu (simples, carrega outras páginas)
     document.querySelectorAll('.menu-item').forEach(button => {
-    button.addEventListener('click', () => {
+      button.addEventListener('click', () => {
         const page = button.dataset.page;
         window.location.href = `../paginas/${page}.html`;
-    });
+      });
     });
 
-    /* ===== Tema ===== */
-    const themeToggle = document.getElementById('themeToggle');
-    const themeLabel = document.getElementById('themeLabel');
+    // THEME (persistência)
     const savedTheme = localStorage.getItem('theme');
-
-    function applyTheme(theme) {
-      if (theme === 'dark') {
+    function applyTheme(theme){
+      if(theme === 'dark'){
         document.documentElement.classList.add('dark');
+        themeToggle.setAttribute('aria-pressed','true');
         themeLabel.textContent = 'Claro';
       } else {
         document.documentElement.classList.remove('dark');
+        themeToggle.setAttribute('aria-pressed','false');
         themeLabel.textContent = 'Escuro';
       }
       localStorage.setItem('theme', theme);
     }
+    // elementos
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    if(savedTheme) applyTheme(savedTheme);
+    else applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
-    applyTheme(savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-
-    themeToggle.addEventListener('click', () => {
+    themeToggle.addEventListener('click', ()=>{
       const isDark = document.documentElement.classList.contains('dark');
       applyTheme(isDark ? 'light' : 'dark');
     });
 
-    /* ===== Logout ===== */
-    const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.addEventListener('click', () => {
-      localStorage.clear();
-      alert('Você saiu do sistema.');
-      window.location.href = './index.html';
+    // MOBILE menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', ()=>{
+      const sb = document.querySelector('.sidebar');
+      if(getComputedStyle(sb).display === 'none' || sb.style.display === 'none') {
+        sb.style.display = 'flex';
+      } else {
+        sb.style.display = 'none';
+      }
     });
 
+    // MENU: navegação para arquivos (ver função pageHref)
+    document.querySelectorAll('.menu-item').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const page = btn.dataset.page;
+        const href = pageHref(page);
+        // se for a própria página "cadastro", evita recarregar
+        if(location.pathname.endsWith('/cadastro.html') || location.pathname.endsWith('cadastro.html')){
+          if(page === 'cadastro' || page === '' ) return;
+        }
+        window.location.href = href;
+      });
+    });
+
+    // LOGOUT
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn.addEventListener('click', ()=>{
+      localStorage.removeItem('token');
+      localStorage.removeItem('name');
+      // redireciona ao dashboard/index
+      window.location.href = pageHref('index');
+    });
+
+    // preenche nome do usuário se houver
+    const profileName = document.getElementById('profileName');
+    const tokenShort = document.getElementById('tokenShort');
     const storedName = localStorage.getItem('name');
-    if (storedName) document.getElementById('profileName').textContent = storedName;
+    const storedToken = localStorage.getItem('token');
+    if(storedName) profileName.textContent = storedName;
+    if(storedToken) tokenShort.textContent = storedToken.slice(0,12) + '…';
+
+    /* ========== Funcionalidade de Cadastro ========== */
+    
+    // Simulação de permissões (em uma aplicação real, isso viria do backend)
+    const userPermissions = {
+      canViewMap: true,
+      canViewList: true,
+      canExport: true
+    };
+
+    // Dados de exemplo para o mapa e tabela
+    let contatos = JSON.parse(localStorage.getItem('contatos')) || [
+      { 
+        id: 1, 
+        nome: "João Silva", 
+        email: "joao.silva@email.com", 
+        telefone: "(11) 99999-9999", 
+        cidade: "São Paulo", 
+        bairro: "Centro", 
+        status: "ativo", 
+        dataCadastro: "15/07/2024",
+        lat: -23.5505,
+        lng: -46.6333
+      },
+      { 
+        id: 2,
+        nome: "Maria Santos", 
+        email: "maria.santos@email.com", 
+        telefone: "(11) 98888-8888", 
+        cidade: "Rio de Janeiro", 
+        bairro: "Copacabana", 
+        status: "ativo", 
+        dataCadastro: "14/07/2024",
+        lat: -22.9707,
+        lng: -43.1820
+      },
+      { 
+        id: 3,
+        nome: "Pedro Oliveira", 
+        email: "pedro.oliveira@email.com", 
+        telefone: "(11) 97777-7777", 
+        cidade: "Belo Horizonte", 
+        bairro: "Savassi", 
+        status: "inativo", 
+        dataCadastro: "10/07/2024",
+        lat: -19.9167,
+        lng: -43.9345
+      }
+    ];
+
+    // Verificar permissões e mostrar/ocultar seções
+    function checkPermissions() {
+      if (!userPermissions.canViewMap) {
+        document.getElementById('heatMapSection').style.display = 'none';
+      }
+      if (!userPermissions.canViewList) {
+        document.getElementById('contactsTableSection').style.display = 'none';
+      }
+      if (!userPermissions.canExport) {
+        document.querySelector('button[onclick="exportContacts()"]').style.display = 'none';
+      }
+    }
+
+    // Funções do Mapa
+    let mapaAtual = 'pontos';
+    let map;
+    let markers = [];
+    let heatmap;
+
+    function mostrarPontosIndividuais() {
+      mapaAtual = 'pontos';
+      atualizarBotoesMapa('btnPontos');
+      atualizarVisualizacaoMapa();
+    }
+
+    function mostrarContadoresBairro() {
+      mapaAtual = 'bairros';
+      atualizarBotoesMapa('btnBairros');
+      atualizarVisualizacaoMapa();
+    }
+
+    function mostrarMapaCalor() {
+      mapaAtual = 'calor';
+      atualizarBotoesMapa('btnCalor');
+      atualizarVisualizacaoMapa();
+    }
+
+    function atualizarBotoesMapa(botaoAtivo) {
+      document.getElementById('btnPontos').className = 'btn btn-outline';
+      document.getElementById('btnBairros').className = 'btn btn-outline';
+      document.getElementById('btnCalor').className = 'btn btn-outline';
+      document.getElementById(botaoAtivo).className = 'btn btn-primary';
+    }
+
+    function atualizarVisualizacaoMapa() {
+      // Em uma implementação real com Google Maps API, aqui seriam:
+      // 1. Remover marcadores/heatmap existentes
+      // 2. Adicionar nova visualização baseada no mapaAtual
+      
+      let mensagem = '';
+      switch(mapaAtual) {
+        case 'pontos':
+          mensagem = 'Visualizando Pontos Individuais no Google Maps';
+          break;
+        case 'bairros':
+          mensagem = 'Visualizando Contadores por Bairro no Google Maps';
+          break;
+        case 'calor':
+          mensagem = 'Visualizando Mapa de Calor no Google Maps';
+          break;
+      }
+      
+      // Simulação - em produção isso seria substituído pela API do Google Maps
+      console.log(mensagem);
+      alert(`Modo ativo: ${mensagem}\n\nEm uma implementação real, o Google Maps mostraria:\n- Pontos individuais: Marcadores para cada contato\n- Contadores por bairro: Áreas destacadas com contagens\n- Mapa de calor: Gradiente de calor baseado na densidade`);
+    }
+
+    // Funções do Formulário de Cadastro
+    function abrirNovoCadastro() {
+      document.getElementById('novoCadastroSection').style.display = 'block';
+      document.getElementById('novoCadastroSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function fecharNovoCadastro() {
+      document.getElementById('novoCadastroSection').style.display = 'none';
+      document.getElementById('formNovoCadastro').reset();
+      
+      // Restaurar comportamento padrão do formulário
+      const form = document.getElementById('formNovoCadastro');
+      form.onsubmit = function(e) {
+        e.preventDefault();
+        salvarNovoContato();
+      };
+      form.querySelector('button[type="submit"]').textContent = 'Salvar Cadastro';
+    }
+
+    function editarContato(id) {
+      const contato = contatos.find(c => c.id === id);
+      if (contato) {
+        // Preencher o formulário com os dados do contato
+        document.getElementById('nomeCompleto').value = contato.nome;
+        document.getElementById('idade').value = contato.idade || '';
+        document.getElementById('sexo').value = contato.sexo || '';
+        document.getElementById('email').value = contato.email;
+        document.getElementById('celular').value = contato.telefone;
+        document.getElementById('municipio').value = contato.cidade;
+        document.getElementById('bairro').value = contato.bairro;
+        document.getElementById('escolaridade').value = contato.escolaridade || '';
+        document.getElementById('assessor').value = contato.assessor || '';
+        document.getElementById('assunto').value = contato.assunto || '';
+        document.getElementById('observacao').value = contato.observacao || '';
+        
+        // Abrir o formulário
+        abrirNovoCadastro();
+        
+        // Alterar o comportamento do formulário para edição
+        const form = document.getElementById('formNovoCadastro');
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          salvarEdicaoContato(id);
+        };
+        
+        // Alterar o texto do botão
+        form.querySelector('button[type="submit"]').textContent = 'Atualizar Cadastro';
+      }
+    }
+
+    function salvarEdicaoContato(id) {
+      const contatoIndex = contatos.findIndex(c => c.id === id);
+      if (contatoIndex !== -1) {
+        contatos[contatoIndex] = {
+          ...contatos[contatoIndex],
+          nome: document.getElementById('nomeCompleto').value,
+          idade: document.getElementById('idade').value,
+          sexo: document.getElementById('sexo').value,
+          email: document.getElementById('email').value,
+          telefone: document.getElementById('celular').value,
+          cidade: document.getElementById('municipio').value,
+          bairro: document.getElementById('bairro').value,
+          escolaridade: document.getElementById('escolaridade').value,
+          assessor: document.getElementById('assessor').value,
+          assunto: document.getElementById('assunto').value,
+          observacao: document.getElementById('observacao').value
+        };
+        
+        salvarContatos();
+        carregarTabelaContatos();
+        fecharNovoCadastro();
+        alert('Contato atualizado com sucesso!');
+      }
+    }
+
+    function excluirContato(id) {
+      if (confirm('Tem certeza que deseja excluir este contato?')) {
+        contatos = contatos.filter(c => c.id !== id);
+        salvarContatos();
+        carregarTabelaContatos();
+        alert('Contato excluído com sucesso!');
+      }
+    }
+
+    function salvarNovoContato() {
+      const novoContato = {
+        id: Date.now(),
+        nome: document.getElementById('nomeCompleto').value,
+        idade: document.getElementById('idade').value,
+        sexo: document.getElementById('sexo').value,
+        email: document.getElementById('email').value,
+        telefone: document.getElementById('celular').value,
+        cidade: document.getElementById('municipio').value,
+        bairro: document.getElementById('bairro').value,
+        escolaridade: document.getElementById('escolaridade').value,
+        assessor: document.getElementById('assessor').value,
+        assunto: document.getElementById('assunto').value,
+        observacao: document.getElementById('observacao').value,
+        status: 'ativo',
+        dataCadastro: new Date().toLocaleDateString('pt-BR'),
+        lat: -10.9263 + (Math.random() - 0.5) * 0.1,
+        lng: -37.0785 + (Math.random() - 0.5) * 0.1
+      };
+      
+      contatos.push(novoContato);
+      salvarContatos();
+      carregarTabelaContatos();
+      fecharNovoCadastro();
+      alert('Contato cadastrado com sucesso!');
+    }
+
+    function salvarContatos() {
+      localStorage.setItem('contatos', JSON.stringify(contatos));
+    }
+
+    function carregarTabelaContatos() {
+      const tbody = document.getElementById('contactsTableBody');
+      tbody.innerHTML = '';
+      
+      contatos.forEach(contato => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${contato.nome}</td>
+          <td>${contato.email}</td>
+          <td>${contato.telefone}</td>
+          <td>${contato.cidade}</td>
+          <td>${contato.bairro}</td>
+          <td><span class="badge ${contato.status}">${contato.status === 'ativo' ? 'Ativo' : 'Inativo'}</span></td>
+          <td>${contato.dataCadastro}</td>
+          <td>
+            <div class="actions">
+              <button class="btn-icon" onclick="editarContato(${contato.id})"><i data-lucide="edit-2"></i></button>
+              <button class="btn-icon" onclick="excluirContato(${contato.id})"><i data-lucide="trash-2"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      // Atualizar ícones Lucide
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+      
+      atualizarEstatisticas();
+    }
+
+    function exportContacts() {
+      if (!userPermissions.canExport) {
+        alert('Você não tem permissão para exportar contatos.');
+        return;
+      }
+      
+      // Simular exportação
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + "Nome,E-mail,Telefone,Cidade,Bairro,Status,Data Cadastro\n"
+        + contatos.map(contato => 
+            `"${contato.nome}","${contato.email}","${contato.telefone}","${contato.cidade}","${contato.bairro}","${contato.status}","${contato.dataCadastro}"`
+          ).join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "contatos.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Evento do formulário de cadastro
+    document.getElementById('formNovoCadastro').addEventListener('submit', function(e) {
+      e.preventDefault();
+      salvarNovoContato();
+    });
+
+    // Atualizar estatísticas
+    function atualizarEstatisticas() {
+      const activeContacts = contatos.filter(c => c.status === 'ativo').length;
+      const cidadesUnicas = [...new Set(contatos.map(c => c.cidade))].length;
+      const hoje = new Date().toLocaleDateString('pt-BR');
+      const novosHoje = contatos.filter(c => c.dataCadastro === hoje).length;
+      
+      document.getElementById('totalContacts').textContent = contatos.length;
+      document.getElementById('activeContacts').textContent = activeContacts;
+      document.getElementById('newToday').textContent = novosHoje;
+      document.getElementById('totalCities').textContent = cidadesUnicas;
+    }
+
+    // Inicializar
+    checkPermissions();
+    carregarTabelaContatos();
+    mostrarPontosIndividuais(); // Inicializar com pontos individuais
+
+    // Simular carregamento de dados
+    setTimeout(() => {
+      console.log('Dados de contatos carregados');
+    }, 1000);
   </script>
 </body>
 </html>
