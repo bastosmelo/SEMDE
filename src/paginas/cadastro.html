@@ -480,17 +480,13 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Celular *</label>
-                <input type="tel" id="celular" placeholder="(11) 99999-9999" required>
+                <input type="tel" id="celular" placeholder="(79) 99999-9999" required oninput="formatarTelefone(this)">
               </div>
               <div class="form-group">
                 <label>Município *</label>
-                <select id="municipio" required>
+                <select id="municipio" required onchange="atualizarBairros()">
                   <option value="">Selecione o município</option>
-                  <option>Aracaju</option>
-                  <option>Laranjeiras</option>
-                  <option>Nossa Senhora do Socorro</option>
-                  <option>São Crióvão</option>
-                  <option>Estância</option>
+                  <!-- Municípios de Sergipe serão carregados aqui -->
                 </select>
               </div>
             </div>
@@ -498,7 +494,10 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Bairro *</label>
-                <input type="text" id="bairro" placeholder="Nome do bairro" required>
+                <select id="bairro" required>
+                  <option value="">Primeiro selecione o município</option>
+                  <!-- Bairros serão carregados dinamicamente -->
+                </select>
               </div>
               <div class="form-group">
                 <label>Escolaridade</label>
@@ -623,6 +622,7 @@
     // inicializa lucide icons quando disponível
     window.addEventListener('load', ()=> {
       if(window.lucide) lucide.createIcons();
+      carregarMunicipiosSergipe();
     });
 
     /* ================= CONFIG ================= */
@@ -699,6 +699,132 @@
     if(storedName) profileName.textContent = storedName;
     if(storedToken) tokenShort.textContent = storedToken.slice(0,12) + '…';
 
+    /* ========== DADOS DE SERGIPE ========== */
+    
+    // Municípios de Sergipe
+    const municipiosSergipe = [
+      "Aracaju", "Amparo de São Francisco", "Aquidabã", "Arauá", "Areia Branca", 
+      "Barra dos Coqueiros", "Boquim", "Brejo Grande", "Campo do Brito", "Canhoba", 
+      "Canindé de São Francisco", "Capela", "Carira", "Carmópolis", "Cedro de São João", 
+      "Cristinápolis", "Cumbe", "Divina Pastora", "Estância", "Feira Nova", 
+      "Frei Paulo", "Gararu", "General Maynard", "Gracho Cardoso", "Ilha das Flores", 
+      "Indiaroba", "Itabaiana", "Itabaianinha", "Itabi", "Itaporanga d'Ajuda", 
+      "Japaratuba", "Japoatã", "Lagarto", "Laranjeiras", "Macambira", 
+      "Malhada dos Bois", "Malhador", "Maruim", "Moita Bonita", "Monte Alegre de Sergipe", 
+      "Muribeca", "Neópolis", "Nossa Senhora Aparecida", "Nossa Senhora da Glória", 
+      "Nossa Senhora das Dores", "Nossa Senhora de Lourdes", "Nossa Senhora do Socorro", 
+      "Pacatuba", "Pedra Mole", "Pedrinhas", "Pinhão", "Pirambu", 
+      "Poço Redondo", "Poço Verde", "Porto da Folha", "Propriá", "Riachão do Dantas", 
+      "Riachuelo", "Ribeirópolis", "Rosário do Catete", "Salgado", "Santa Luzia do Itanhy", 
+      "Santa Rosa de Lima", "Santana do São Francisco", "Santo Amaro das Brotas", 
+      "São Cristóvão", "São Domingos", "São Francisco", "São Miguel do Aleixo", 
+      "Simão Dias", "Siriri", "Telha", "Tobias Barreto", "Tomar do Geru", 
+      "Umbaúba"
+    ];
+
+    // Bairros por município (exemplos)
+    const bairrosPorMunicipio = {
+      "Aracaju": [
+        "Centro", "Atalaia", "Coroa do Meio", "São José", "Grageru", "Jardins", 
+        "Inácio Barbosa", "Luzia", "13 de Julho", "Salgado Filho", "Getúlio Vargas", 
+        "Siqueira Campos", "Suíssa", "Jardim Centenário", "Farolândia", "Ponto Novo"
+      ],
+      "São Cristóvão": [
+        "Centro", "Rosa Elze", "São José", "Santo Antônio", "Marcela", "João Bebe Água"
+      ],
+      "Lagarto": [
+        "Centro", "Alto da Boa Vista", "São José", "Novo Horizonte", "Santo Antônio"
+      ],
+      "Itabaiana": [
+        "Centro", "Queimadas", "Marianga", "São Cristóvão", "Santo Antônio"
+      ],
+      "Estância": [
+        "Centro", "Piaçaveira", "Porto", "Centro Industrial", "Novo Horizonte"
+      ],
+      "Nossa Senhora do Socorro": [
+        "Centro", "Marcelo Deda", "Conj. João Alves", "Conj. Marcos Freire", "Santo Antônio"
+      ],
+      "Laranjeiras": [
+        "Centro", "Alto da Boa Vista", "Comendador Travassos", "Pedra Branca"
+      ],
+      "Tobias Barreto": [
+        "Centro", "Boa Vista", "São José", "Novo Horizonte"
+      ],
+      "Simão Dias": [
+        "Centro", "Alto da Glória", "São José", "Boa Vista"
+      ],
+      "Propriá": [
+        "Centro", "Santa Cruz", "São João", "Novo Horizonte"
+      ]
+    };
+
+    // Para municípios sem bairros específicos, usar bairros genéricos
+    const bairrosGenericos = [
+      "Centro", "Zona Rural", "Bairro Novo", "Vila Operária", "Jardim das Flores",
+      "São José", "Santo Antônio", "Santa Cruz", "Boa Vista", "Novo Horizonte"
+    ];
+
+    /* ========== FUNÇÕES DE FORMATAÇÃO E CARREGAMENTO ========== */
+
+    // Função para formatar telefone no formato (XX) XXXXX-XXXX
+    function formatarTelefone(input) {
+      // Remove tudo que não é número
+      let value = input.value.replace(/\D/g, '');
+      
+      // Formata o telefone
+      if (value.length <= 10) {
+        value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+      } else {
+        value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+      }
+      
+      input.value = value;
+    }
+
+    // Função para carregar municípios de Sergipe
+    function carregarMunicipiosSergipe() {
+      const selectMunicipio = document.getElementById('municipio');
+      
+      // Limpa opções existentes (exceto a primeira)
+      while (selectMunicipio.children.length > 1) {
+        selectMunicipio.removeChild(selectMunicipio.lastChild);
+      }
+      
+      // Adiciona todos os municípios de Sergipe
+      municipiosSergipe.forEach(municipio => {
+        const option = document.createElement('option');
+        option.value = municipio;
+        option.textContent = municipio;
+        selectMunicipio.appendChild(option);
+      });
+    }
+
+    // Função para atualizar bairros baseado no município selecionado
+    function atualizarBairros() {
+      const municipioSelecionado = document.getElementById('municipio').value;
+      const selectBairro = document.getElementById('bairro');
+      
+      // Limpa opções existentes
+      selectBairro.innerHTML = '<option value="">Selecione o bairro</option>';
+      
+      if (municipioSelecionado) {
+        let bairros = bairrosPorMunicipio[municipioSelecionado];
+        
+        // Se não houver bairros específicos para o município, usar bairros genéricos
+        if (!bairros) {
+          bairros = bairrosGenericos;
+        }
+        
+        // Adiciona os bairros ao select
+        bairros.forEach(bairro => {
+          const option = document.createElement('option');
+          option.value = bairro;
+          option.textContent = bairro;
+          selectBairro.appendChild(option);
+        });
+      }
+    }
+
     /* ========== Funcionalidade de Cadastro ========== */
     
     // Simulação de permissões (em uma aplicação real, isso viria do backend)
@@ -714,37 +840,37 @@
         id: 1, 
         nome: "João Silva", 
         email: "joao.silva@email.com", 
-        telefone: "(11) 99999-9999", 
-        cidade: "São Paulo", 
+        telefone: "(79) 99999-9999", 
+        cidade: "Aracaju", 
         bairro: "Centro", 
         status: "ativo", 
         dataCadastro: "15/07/2024",
-        lat: -23.5505,
-        lng: -46.6333
+        lat: -10.9111,
+        lng: -37.0717
       },
       { 
         id: 2,
         nome: "Maria Santos", 
         email: "maria.santos@email.com", 
-        telefone: "(11) 98888-8888", 
-        cidade: "Rio de Janeiro", 
-        bairro: "Copacabana", 
+        telefone: "(79) 98888-8888", 
+        cidade: "São Cristóvão", 
+        bairro: "Centro", 
         status: "ativo", 
         dataCadastro: "14/07/2024",
-        lat: -22.9707,
-        lng: -43.1820
+        lat: -11.0144,
+        lng: -37.2064
       },
       { 
         id: 3,
         nome: "Pedro Oliveira", 
         email: "pedro.oliveira@email.com", 
-        telefone: "(11) 97777-7777", 
-        cidade: "Belo Horizonte", 
-        bairro: "Savassi", 
+        telefone: "(79) 97777-7777", 
+        cidade: "Lagarto", 
+        bairro: "São José", 
         status: "inativo", 
         dataCadastro: "10/07/2024",
-        lat: -19.9167,
-        lng: -43.9345
+        lat: -10.9167,
+        lng: -37.6500
       }
     ];
 
@@ -763,9 +889,6 @@
 
     // Funções do Mapa
     let mapaAtual = 'pontos';
-    let map;
-    let markers = [];
-    let heatmap;
 
     function mostrarPontosIndividuais() {
       mapaAtual = 'pontos';
@@ -793,10 +916,6 @@
     }
 
     function atualizarVisualizacaoMapa() {
-      // Em uma implementação real com Google Maps API, aqui seriam:
-      // 1. Remover marcadores/heatmap existentes
-      // 2. Adicionar nova visualização baseada no mapaAtual
-      
       let mensagem = '';
       switch(mapaAtual) {
         case 'pontos':
@@ -810,9 +929,7 @@
           break;
       }
       
-      // Simulação - em produção isso seria substituído pela API do Google Maps
       console.log(mensagem);
-      alert(`Modo ativo: ${mensagem}\n\nEm uma implementação real, o Google Maps mostraria:\n- Pontos individuais: Marcadores para cada contato\n- Contadores por bairro: Áreas destacadas com contagens\n- Mapa de calor: Gradiente de calor baseado na densidade`);
     }
 
     // Funções do Formulário de Cadastro
@@ -844,7 +961,13 @@
         document.getElementById('email').value = contato.email;
         document.getElementById('celular').value = contato.telefone;
         document.getElementById('municipio').value = contato.cidade;
-        document.getElementById('bairro').value = contato.bairro;
+        
+        // Atualizar bairros para o município selecionado
+        atualizarBairros();
+        setTimeout(() => {
+          document.getElementById('bairro').value = contato.bairro;
+        }, 100);
+        
         document.getElementById('escolaridade').value = contato.escolaridade || '';
         document.getElementById('assessor').value = contato.assessor || '';
         document.getElementById('assunto').value = contato.assunto || '';
