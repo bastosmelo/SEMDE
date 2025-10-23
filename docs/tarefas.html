@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="css/tarefas.css">
+  <link rel="stylesheet" href="css/tarefas.css">
 
     <!-- Lucide icons -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
@@ -95,13 +95,13 @@
                 <!-- Kanban Board -->
                 <div class="kanban-board">
                     <!-- Coluna A Fazer -->
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="a-fazer">
                         <div class="column-header a-fazer">
                             <h2>A fazer</h2>
                             <span class="task-count">4</span>
                         </div>
                         <div class="tasks-container">
-                            <div class="task-card">
+                            <div class="task-card" data-id="1">
                                 <div class="task-type">Cadastro</div>
                                 <h3 class="task-title">Contato: Teste Pastor</h3>
                                 <p class="task-description">Novo contato cadastrado - teste pastor</p>
@@ -109,15 +109,19 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">31/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="task-card">
+                            <div class="task-card" data-id="2">
                                 <div class="task-type">Cadastro</div>
                                 <h3 class="task-title">Contato: Teste 705</h3>
                                 <p class="task-description">Novo contato cadastrado - teste 705</p>
@@ -125,15 +129,19 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">28/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="task-card">
+                            <div class="task-card" data-id="3">
                                 <div class="task-type">Cadastro</div>
                                 <h3 class="task-title">Contato: Teste 12345</h3>
                                 <p class="task-description">Novo contato cadastrado - teste 12345</p>
@@ -141,10 +149,14 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">27/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -152,13 +164,13 @@
                     </div>
 
                     <!-- Coluna Em Andamento -->
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="em-andamento">
                         <div class="column-header em-andamento">
                             <h2>Em andamento</h2>
                             <span class="task-count">5</span>
                         </div>
                         <div class="tasks-container">
-                            <div class="task-card">
+                            <div class="task-card" data-id="4">
                                 <div class="task-type">Teste</div>
                                 <h3 class="task-title">teste 15</h3>
                                 <p class="task-description">Teste</p>
@@ -166,15 +178,19 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">31/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="task-card">
+                            <div class="task-card" data-id="5">
                                 <div class="task-type">Teste</div>
                                 <h3 class="task-title">teste 7</h3>
                                 <p class="task-description">Teste 7</p>
@@ -182,10 +198,14 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">31/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -193,13 +213,13 @@
                     </div>
 
                     <!-- Coluna Concluído -->
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="concluido">
                         <div class="column-header concluido">
                             <h2>Concluído</h2>
                             <span class="task-count">6</span>
                         </div>
                         <div class="tasks-container">
-                            <div class="task-card">
+                            <div class="task-card" data-id="6">
                                 <div class="task-type">Cadastro</div>
                                 <h3 class="task-title">Contato: Teste Pastor</h3>
                                 <p class="task-description">Novo contato cadastrado - teste pastor</p>
@@ -207,15 +227,19 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">31/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="task-card">
+                            <div class="task-card" data-id="7">
                                 <div class="task-type">Cadastro</div>
                                 <h3 class="task-title">Contato: Teste 705</h3>
                                 <p class="task-description">Novo contato cadastrado - teste 705</p>
@@ -223,15 +247,19 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">28/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="task-card">
+                            <div class="task-card" data-id="8">
                                 <div class="task-type">Cadastro</div>
                                 <h3 class="task-title">Contato: Teste 12345</h3>
                                 <p class="task-description">Novo contato cadastrado - teste 12345</p>
@@ -239,10 +267,14 @@
                                     <span class="task-badge media">Média</span>
                                     <span class="task-date">27/07</span>
                                     <div class="task-actions">
-                                        <button class="btn-icon" data-action="edit"><i
-                                                data-lucide="edit-2"></i></button>
-                                        <button class="btn-icon" data-action="delete"><i
-                                                data-lucide="trash-2"></i></button>
+                                        <button class="btn-icon btn-edit tooltip" data-action="edit"
+                                            data-tooltip="Editar">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete tooltip" data-action="delete"
+                                            data-tooltip="Apagar">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -325,10 +357,83 @@
         </div>
     </div>
 
-    <script src="js/gestaotarefas.js"></script>
+    <!-- Modal Editar Tarefa -->
+    <div id="modalEditarTarefa" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalEditTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalEditTitle">Editar Tarefa</h2>
+                <span class="close" id="closeEditModal">&times;</span>
+            </div>
+            <form id="formEditarTarefa" class="modal-form" autocomplete="off">
+                <input type="hidden" id="edit-task-id">
+                <div class="form-row">
+                    <div class="form-group form-group-wide">
+                        <label for="edit-task-title">Título da Tarefa</label>
+                        <input type="text" id="edit-task-title"
+                            placeholder="Digite um título claro e objetivo para a tarefa" required>
+                    </div>
+                </div>
 
-    <!-- script da ia -->
-    <script src="ia/ia-loader.js"></script>
+                <div class="form-row">
+                    <div class="form-group form-group-wide">
+                        <label for="edit-task-description">Descrição Detalhada</label>
+                        <textarea id="edit-task-description"
+                            placeholder="Descreva detalhadamente o que precisa ser feito, incluindo requisitos específicos e critérios de aceitação"
+                            rows="4" required></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-task-date">Data de Vencimento</label>
+                        <input type="date" id="edit-task-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-assignee">Responsável</label>
+                        <input type="text" id="edit-task-assignee" placeholder="Nome do responsável" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-task-priority">Prioridade</label>
+                        <select id="edit-task-priority" required>
+                            <option value="">Selecione a prioridade</option>
+                            <option value="alta">Alta</option>
+                            <option value="media">Média</option>
+                            <option value="baixa">Baixa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-status">Status</label>
+                        <select id="edit-task-status" required>
+                            <option value="a-fazer">A fazer</option>
+                            <option value="em-andamento">Em andamento</option>
+                            <option value="concluido">Concluído</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-wide">
+                        <label for="edit-task-tags">Tags/Categorias</label>
+                        <input type="text" id="edit-task-tags"
+                            placeholder="Separe as tags por vírgula (ex: frontend, urgente, cliente-x)">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px">
+                    <button type="button" id="btnCancelarEdit" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+  <script src="js/gestaotarefas.js"></script>
+
+  <!-- script da ia -->
+  <script src="ia/ia-loader.js"></script>
 </body>
 
 </html>

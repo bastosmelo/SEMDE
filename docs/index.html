@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        
+
         <ul class="menu" role="menu" aria-label="Menu principal">
           <li><button class="menu-item" data-page="index"><i data-lucide="home"></i><span>Dashboard</span></button></li>
           <li><button class="menu-item" data-page="acoes"><i data-lucide="activity"></i><span>Ações</span></button></li>
@@ -146,8 +146,11 @@
 
           <div class="chart-card" style="min-width:320px">
             <h3>Mapa de Ações</h3>
-            <div id="mapPlaceholder">Mapa (placeholder)</div>
-            <div style="margin-top:8px; font-size:13px; color:var(--muted-2)" id="actionCounter">0 ações cadastradas
+            <div class="map-container">
+              <div id="actionMap" style="height: 200px; border-radius: 8px;"></div>
+            </div>
+            <div style="margin-top:8px; font-size:13px; color:var(--muted-2)" id="actionCounter">
+              <span style="color: var(--primary-1); font-weight: 700">8</span> ações cadastradas
             </div>
           </div>
         </section>
@@ -177,6 +180,11 @@
   <!-- script da ia -->
   <script src="ia/ia-loader.js"></script>
 
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,10 @@
 
   <!-- Fonte -->
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <!-- Lucide icons -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
 
@@ -32,15 +36,21 @@
         <ul class="menu" role="menu" aria-label="Menu principal">
           <li><button class="menu-item" data-page="index"><i data-lucide="home"></i><span>Dashboard</span></button></li>
           <li><button class="menu-item" data-page="acoes"><i data-lucide="activity"></i><span>Ações</span></button></li>
-          <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i><span>Gestão de tarefas</span></button></li>
-          <li><button class="menu-item" data-page="cadastro"><i data-lucide="user-plus"></i><span>Cadastro</span></button></li>
-          <li><button class="menu-item" data-page="financeiro"><i data-lucide="dollar-sign"></i><span>Financeiro</span></button></li>
-          <li><button class="menu-item" data-page="config"><i data-lucide="settings"></i><span>Configurações</span></button></li>
+          <li><button class="menu-item" data-page="tarefas"><i data-lucide="list"></i><span>Gestão de
+                tarefas</span></button></li>
+          <li><button class="menu-item" data-page="cadastro"><i
+                data-lucide="user-plus"></i><span>Cadastro</span></button></li>
+          <li><button class="menu-item" data-page="financeiro"><i
+                data-lucide="dollar-sign"></i><span>Financeiro</span></button></li>
+          <li><button class="menu-item" data-page="config"><i
+                data-lucide="settings"></i><span>Configurações</span></button></li>
         </ul>
 
         <div class="sidebar-footer">
-          <button id="themeToggle" class="menu-btn" aria-pressed="false"><i data-lucide="moon"></i><span id="themeLabel">Tema</span></button>
-          <button id="logoutBtn" class="menu-btn" aria-pressed="false"><i data-lucide="log-out"></i><span>Sair</span></button>
+          <button id="themeToggle" class="menu-btn" aria-pressed="false"><i data-lucide="moon"></i><span
+              id="themeLabel">Tema</span></button>
+          <button id="logoutBtn" class="menu-btn" aria-pressed="false"><i
+              data-lucide="log-out"></i><span>Sair</span></button>
         </div>
       </aside>
 
@@ -52,7 +62,8 @@
           </div>
 
           <div style="display:flex; gap:12px; align-items:center">
-            <div style="font-size:13px; color:var(--muted-2)">Token: <span id="tokenShort" style="font-weight:700; color:var(--text)">—</span></div>
+            <div style="font-size:13px; color:var(--muted-2)">Token: <span id="tokenShort"
+                style="font-weight:700; color:var(--text)">—</span></div>
             <button id="mobileMenuBtn" class="btn">Menu</button>
           </div>
         </div>
@@ -85,7 +96,7 @@
               <i data-lucide="x"></i> Fechar
             </button>
           </div>
-          
+
           <form id="formNovoCadastro">
             <div class="form-row">
               <div class="form-group">
@@ -118,11 +129,12 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Celular *</label>
-                <input type="tel" id="celular" placeholder="(79) 99999-9999" required oninput="formatarTelefone(this)">
+                <input type="tel" id="celular" placeholder="(79) 99999-9999" required
+                  oninput="contactsManager.formatarTelefone(this)">
               </div>
               <div class="form-group">
                 <label>Município *</label>
-                <select id="municipio" required onchange="atualizarBairros()">
+                <select id="municipio" required onchange="contactsManager.atualizarBairros(this.value)">
                   <option value="">Selecione o município</option>
                   <!-- Municípios de Sergipe serão carregados aqui -->
                 </select>
@@ -185,35 +197,22 @@
         </div>
 
         <!-- Heat Map Section -->
-        <div id="heatMapSection" class="panel">
+        <div id="heatMapSection" class="panel map-section">
           <div class="map-header">
             <h2>Distribuição Geográfica</h2>
             <div class="map-controls">
-              <button id="btnPontos" class="btn btn-primary" onclick="mostrarPontosIndividuais()">
-                <i data-lucide="map-pin"></i> Pontos Individuais
-              </button>
-              <button id="btnBairros" class="btn btn-outline" onclick="mostrarContadoresBairro()">
-                <i data-lucide="layers"></i> Contadores por Bairro
-              </button>
-              <button id="btnCalor" class="btn btn-outline" onclick="mostrarMapaCalor()">
-                <i data-lucide="thermometer"></i> Mapa de Calor
-              </button>
+              <button id="btnPontos" class="btn btn-primary"><i data-lucide="map-pin"></i> Pontos Individuais</button>
+              <button id="btnBairros" class="btn btn-outline"><i data-lucide="layers"></i> Contadores por
+                Bairro</button>
+              <button id="btnCalor" class="btn btn-outline"><i data-lucide="thermometer"></i> Mapa de Calor</button>
             </div>
           </div>
-          
-          <div class="heat-map-container">
-            <div id="mapVisualization" class="google-map-container">
-              <!-- Google Maps será carregado aqui -->
-              <iframe
-                id="googleMap"
-                src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d9317.413902350807!2d-37.07853473465079!3d-10.92631229130945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1spt-BR!2sbr!4v1758216126272!5m2!1spt-BR!2sbr"
-                width="100%" 
-                height="100%" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade">
-              </iframe>
+
+          <div class="map-container">
+            <div id="map"></div>
+            <div id="mapLegend" class="map-legend hidden">
+              <div><strong>Legenda</strong></div>
+              <div id="legendContent"></div>
             </div>
           </div>
         </div>
@@ -231,7 +230,7 @@
               </button>
             </div>
           </div>
-          
+
           <div style="overflow-x: auto;">
             <table id="contactsTable">
               <thead>
@@ -256,13 +255,13 @@
     </section>
   </div>
 
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Heatmap plugin -->
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
   <script src="js/cadastro.js"></script>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- script da ia -->
-  <script src="ia/ia-loader.js"></script>
-
 </body>
+
 </html>

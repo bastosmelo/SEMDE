@@ -71,6 +71,9 @@ function showDashboard(token, userName) {
 
   // Recriar os gráficos após mostrar o dashboard
   setTimeout(createCharts, 100);
+
+  setTimeout(createActionMap, 100);
+
 }
 
 
@@ -255,3 +258,49 @@ function createCharts() {
   } catch (e) { console.warn("Charts failed:", e); }
 }
 
+function createActionMap() {
+  const mapContainer = document.getElementById('actionMap');
+  if (!mapContainer) return;
+
+  const centerLat = -10.9091;
+  const centerLng = -37.0678;
+
+  const map = L.map('actionMap').setView([centerLat, centerLng], 12);
+
+  // Mapa estilo "light" bem clean
+  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18
+  }).addTo(map);
+
+  // Remove controles
+  map.removeControl(map.zoomControl);
+  map.removeControl(map.attributionControl);
+
+  // Ícone azul personalizado
+  const blueIcon = L.divIcon({
+    className: 'blue-marker',
+    html: '<div style="background: #ff3939ff; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+
+  const actionPoints = [
+    { lat: -10.9091, lng: -37.0678, title: 'Centro - 3 ações' },
+    { lat: -10.9175, lng: -37.0500, title: 'Zona Norte - 2 ações' },
+    { lat: -10.9000, lng: -37.0550, title: 'Zona Leste - 1 ação' },
+    { lat: -10.9200, lng: -37.0800, title: 'Zona Sul - 4 ações' },
+    { lat: -10.9150, lng: -37.0900, title: 'Zona Oeste - 2 ações' },
+    { lat: -10.8900, lng: -37.0400, title: 'Região Metropolitana - 1 ação' }
+  ];
+
+  // Adiciona marcadores azuis
+  actionPoints.forEach(point => {
+    L.marker([point.lat, point.lng], { icon: blueIcon })
+      .addTo(map)
+      .bindPopup(point.title);
+  });
+
+  const group = new L.featureGroup(actionPoints.map(p => L.marker([p.lat, p.lng])));
+  map.fitBounds(group.getBounds().pad(0.1));
+}
