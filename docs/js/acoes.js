@@ -1,13 +1,19 @@
 // Sistema de gerenciamento de ações
 class ActionsManager {
     constructor() {
+        // Botões de exportação (com IDs específicos)
+        document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
+        document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
         this.actions = this.loadInitialData();
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
         this.currentView = 'calor';
         this.nextId = this.actions.length > 0 ? Math.max(...this.actions.map(a => a.id)) + 1 : 1;
-        
+
+        // Sistema de posições personalizadas
+        this.customPositions = this.loadCustomPositions();
+
         // Dados de cidades e bairros
         this.cidadesBairros = {
             'Aracaju': [
@@ -133,8 +139,193 @@ class ActionsManager {
                 'Ilha do Príncipe', 'Jucutuquara'
             ]
         };
-        
         this.init();
+
+
+    }
+
+    // Métodos de exportação
+    exportToPDF() {
+        const { jsPDF } = window.jspdf;
+
+        // Cria o documento PDF
+        const doc = new jsPDF();
+
+        // Cabeçalho do PDF
+        doc.setFontSize(20);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Relatório de Ações', 105, 20, { align: 'center' });
+
+        // Data de geração
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 105, 28, { align: 'center' });
+
+        // Estatísticas
+        doc.setFontSize(12);
+        doc.setTextColor(60, 60, 60);
+        doc.text(`Total de Ações: ${this.actions.length}`, 14, 40);
+
+        const cities = new Set(this.actions.map(action => action.cidade));
+        const neighborhoods = new Set(this.actions.map(action => action.bairro));
+        doc.text(`Cidades Ativas: ${cities.size}`, 14, 48);
+        doc.text(`Bairros Cobertos: ${neighborhoods.size}`, 14, 56);
+
+        // Tabela de ações
+        const tableColumn = ["Cidade", "Bairro", "Tipo", "Data"];
+        const tableRows = [];
+
+        this.actions.forEach(action => {
+            const actionData = [
+                action.cidade,
+                action.bairro,
+                action.tipo,
+                action.data
+            ];
+            tableRows.push(actionData);
+        });
+
+        // Adiciona a tabela
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 65,
+            theme: 'grid',
+            styles: {
+                font: 'helvetica',
+                fontSize: 10,
+                cellPadding: 3,
+                lineColor: [200, 200, 200],
+                lineWidth: 0.1,
+            },
+            headStyles: {
+                fillColor: [57, 104, 255],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245],
+            },
+            margin: { top: 10 },
+        });
+
+        // Rodapé
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Sistema de Gestão de Ações - Relatório gerado automaticamente', 105, finalY, { align: 'center' });
+
+        // Salva o PDF
+        doc.save(`relatorio-acoes-${new Date().toISOString().split('T')[0]}.pdf`);
+
+        this.showNotification('PDF gerado com sucesso!', 'success');
+    }
+
+    exportToExcel() {
+        // Prepara os dados
+        const data = this.actions.map(action => ({
+            'Cidade': action.cidade,
+            'Bairro': action.bairro,
+            'Tipo da Ação': action.tipo,
+            'Data': action.data,
+            'Latitude': action.lat,
+            'Longitude': action.lng
+        }));
+
+        // Adiciona linha de estatísticas
+        const cities = new Set(this.actions.map(action => action.cidade));
+        const neighborhoods = new Set(this.actions.map(action => action.bairro));
+
+        data.unshift({}); // Linha vazia
+        data.unshift({
+            'Cidade': `ESTATÍSTICAS`,
+            'Bairro': `Total: ${this.actions.length} ações`,
+            'Tipo da Ação': `${cities.size} cidades`,
+            'Data': `${neighborhoods.size} bairros`
+        });
+        data.unshift({
+            'Cidade': `RELATÓRIO DE AÇÕES`,
+            'Bairro': `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+            'Tipo da Ação': '',
+            'Data': ''
+        });
+
+        // Cria a worksheet
+        const ws = XLSX.utils.json_to_sheet(data, { skipHeader: true });
+
+        // Ajusta as larguras das colunas
+        const wscols = [
+            { wch: 15 }, // Cidade
+            { wch: 20 }, // Bairro
+            { wch: 25 }, // Tipo
+            { wch: 12 }, // Data
+            { wch: 12 }, // Latitude
+            { wch: 12 }  // Longitude
+        ];
+        ws['!cols'] = wscols;
+
+        // Formata o cabeçalho
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push(
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Título
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }  // Estatísticas
+        );
+
+        // Adiciona estilos básicos (Excel não suporta CSS completo)
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cell_address = { c: C, r: R };
+                const cell_ref = XLSX.utils.encode_cell(cell_address);
+
+                if (!ws[cell_ref]) continue;
+
+                // Formata título
+                if (R === 0) {
+                    ws[cell_ref].s = {
+                        font: { sz: 14, bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "3968FF" } },
+                        alignment: { horizontal: "center" }
+                    };
+                }
+                // Formata estatísticas
+                else if (R === 1) {
+                    ws[cell_ref].s = {
+                        font: { sz: 11, bold: true, color: { rgb: "3968FF" } },
+                        fill: { fgColor: { rgb: "F0F4FF" } }
+                    };
+                }
+                // Formata cabeçalho da tabela
+                else if (R === 3) {
+                    ws[cell_ref].s = {
+                        font: { sz: 10, bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "4AD6C1" } },
+                        alignment: { horizontal: "center" }
+                    };
+                }
+                // Formata dados
+                else if (R > 3) {
+                    ws[cell_ref].s = {
+                        font: { sz: 9 },
+                        border: {
+                            top: { style: "thin", color: { rgb: "E0E0E0" } },
+                            left: { style: "thin", color: { rgb: "E0E0E0" } },
+                            bottom: { style: "thin", color: { rgb: "E0E0E0" } },
+                            right: { style: "thin", color: { rgb: "E0E0E0" } }
+                        }
+                    };
+                }
+            }
+        }
+
+        // Cria o workbook e adiciona a worksheet
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ações");
+
+        // Salva o arquivo
+        XLSX.writeFile(wb, `relatorio-acoes-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        this.showNotification('Excel gerado com sucesso!', 'success');
     }
 
     loadInitialData() {
@@ -150,6 +341,31 @@ class ActionsManager {
         ];
     }
 
+    // Sistema de posições personalizadas
+    loadCustomPositions() {
+        const saved = localStorage.getItem('customPositions');
+        return saved ? JSON.parse(saved) : {};
+    }
+
+    saveCustomPositions() {
+        localStorage.setItem('customPositions', JSON.stringify(this.customPositions));
+    }
+
+    getPositionKey(cidade, bairro) {
+        return `${cidade}_${bairro}`.toLowerCase().replace(/\s+/g, '_');
+    }
+
+    getCustomPosition(cidade, bairro) {
+        const key = this.getPositionKey(cidade, bairro);
+        return this.customPositions[key];
+    }
+
+    setCustomPosition(cidade, bairro, lat, lng) {
+        const key = this.getPositionKey(cidade, bairro);
+        this.customPositions[key] = { lat, lng };
+        this.saveCustomPositions();
+    }
+
     init() {
         this.initMap();
         this.initCityFilter();
@@ -163,7 +379,7 @@ class ActionsManager {
     initCityFilter() {
         const cidadeSelect = document.getElementById('cidade');
         const bairroSelect = document.getElementById('bairro');
-        
+
         // Adiciona placeholder para cidade
         const cidadePlaceholder = document.createElement('option');
         cidadePlaceholder.value = '';
@@ -171,7 +387,7 @@ class ActionsManager {
         cidadePlaceholder.disabled = true;
         cidadePlaceholder.selected = true;
         cidadeSelect.appendChild(cidadePlaceholder);
-        
+
         // Preenche o select de cidades (ordenadas)
         Object.keys(this.cidadesBairros).sort().forEach(cidade => {
             const option = document.createElement('option');
@@ -179,29 +395,29 @@ class ActionsManager {
             option.textContent = cidade;
             cidadeSelect.appendChild(option);
         });
-        
+
         // Event listener para quando a cidade mudar
         cidadeSelect.addEventListener('change', (e) => {
             this.updateBairrosByCidade(e.target.value);
         });
-        
+
         // Inicializa com mensagem de seleção
         this.showSelectCityMessage();
     }
 
     updateBairrosByCidade(cidade) {
         const bairroSelect = document.getElementById('bairro');
-        
+
         // Reseta o bairro
         bairroSelect.innerHTML = '';
-        
+
         if (!cidade) {
             this.showSelectCityMessage();
             return;
         }
-        
+
         const bairros = this.cidadesBairros[cidade] || [];
-        
+
         // Adiciona placeholder para bairro
         const bairroPlaceholder = document.createElement('option');
         bairroPlaceholder.value = '';
@@ -209,7 +425,7 @@ class ActionsManager {
         bairroPlaceholder.disabled = true;
         bairroPlaceholder.selected = true;
         bairroSelect.appendChild(bairroPlaceholder);
-        
+
         // Adiciona os bairros da cidade selecionada (ordenados)
         bairros.sort().forEach(bairro => {
             const option = document.createElement('option');
@@ -217,10 +433,10 @@ class ActionsManager {
             option.textContent = bairro;
             bairroSelect.appendChild(option);
         });
-        
+
         // Habilita o select de bairro
         bairroSelect.disabled = false;
-        
+
         // Se não há bairros, mostra mensagem
         if (bairros.length === 0) {
             this.showNoNeighborhoodsMessage();
@@ -318,7 +534,7 @@ class ActionsManager {
         // Remove marcadores
         this.currentMarkers.forEach(marker => this.map.removeLayer(marker));
         this.currentMarkers = [];
-        
+
         // Remove heat layer
         if (this.heatLayer) {
             this.map.removeLayer(this.heatLayer);
@@ -328,22 +544,301 @@ class ActionsManager {
 
     showIndividualPoints() {
         this.clearMap();
-        
+
         this.actions.forEach(action => {
             const marker = L.marker([action.lat, action.lng])
                 .bindPopup(this.createPopupContent(action))
                 .addTo(this.map);
-            
+
+            // Adiciona contexto de ação para o marcador
+            marker.actionData = action;
+
+            // Adiciona evento de clique direito
+            marker.on('contextmenu', (e) => {
+                this.showMarkerContextMenu(e, marker);
+            });
+
             this.currentMarkers.push(marker);
         });
-        
+
         this.fitMapToBounds();
         this.showLegend('Pontos de Ação', 'var(--primary-1)');
     }
 
+    // Menu de contexto para mover pontos - aparece abaixo do ponto
+    showMarkerContextMenu(e, marker) {
+        // Remove menu anterior se existir
+        this.removeContextMenu();
+
+        // Cria o menu de contexto
+        const contextMenu = L.DomUtil.create('div', 'leaflet-contextmenu');
+        contextMenu.style.cssText = `
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 8px 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        min-width: 160px;
+        font-family: 'Baloo 2', sans-serif;
+        font-size: 14px;
+    `;
+
+        // Item "Mover ponto"
+        const moveItem = L.DomUtil.create('div', 'contextmenu-item', contextMenu);
+        moveItem.style.cssText = `
+        padding: 8px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    `;
+        moveItem.innerHTML = `
+        <i data-lucide="move" style="width: 16px; height: 16px;"></i>
+        Mover ponto
+    `;
+
+        moveItem.addEventListener('click', () => {
+            this.startMovingMarker(marker);
+            this.removeContextMenu();
+        });
+
+        moveItem.addEventListener('mouseenter', () => {
+            moveItem.style.background = 'var(--menu-hover-bg)';
+        });
+
+        moveItem.addEventListener('mouseleave', () => {
+            moveItem.style.background = 'transparent';
+        });
+
+        // Posiciona o menu diretamente abaixo do ponto do marcador
+        const markerPoint = this.map.latLngToContainerPoint(marker.getLatLng());
+        const mapContainer = this.map.getContainer();
+
+        // Calcula a posição relativa ao container do mapa
+        contextMenu.style.left = (markerPoint.x - 80) + 'px'; // Centraliza horizontalmente
+        contextMenu.style.top = (markerPoint.y + 15) + 'px'; // Coloca 15px abaixo do ponto
+
+        // Adiciona ao container do mapa (não ao body)
+        mapContainer.appendChild(contextMenu);
+
+        // Guarda referência para remover depois
+        this.currentContextMenu = contextMenu;
+
+        // Fecha o menu ao clicar fora
+        setTimeout(() => {
+            const closeHandler = (clickE) => {
+                if (!contextMenu.contains(clickE.target)) {
+                    this.removeContextMenu();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            document.addEventListener('click', closeHandler);
+        }, 100);
+
+        // Atualiza ícones
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
+    removeContextMenu() {
+        if (this.currentContextMenu && this.currentContextMenu.parentNode) {
+            this.currentContextMenu.parentNode.removeChild(this.currentContextMenu);
+            this.currentContextMenu = null;
+        }
+    }
+    // Inicia o processo de mover marcador
+    startMovingMarker(marker) {
+        // Remove o marcador original temporariamente
+        this.map.removeLayer(marker);
+
+        // Cria um marcador temporário para arrastar
+        const tempMarker = L.marker(marker.getLatLng(), {
+            draggable: true,
+            autoPan: true
+        }).addTo(this.map);
+
+        // Interface de instruções
+        const instructions = L.control({ position: 'topright' });
+        instructions.onAdd = () => {
+            const div = L.DomUtil.create('div', 'moving-instructions');
+            div.style.cssText = `
+                background: white;
+                padding: 12px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: 2px solid var(--primary-1);
+                font-family: 'Baloo 2', sans-serif;
+                font-size: 14px;
+                max-width: 200px;
+            `;
+            div.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px; color: var(--primary-1);">
+                    🎯 Movendo ponto
+                </div>
+                <div style="margin-bottom: 8px; font-size: 12px;">
+                    Arraste o ponto para a nova posição
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="confirmMove" style="
+                        background: var(--primary-1);
+                        color: white;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        flex: 1;
+                    ">Confirmar</button>
+                    <button id="cancelMove" style="
+                        background: #6b7280;
+                        color: white;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        flex: 1;
+                    ">Cancelar</button>
+                </div>
+            `;
+            return div;
+        };
+
+        instructions.addTo(this.map);
+
+        // Event listeners para os botões
+        const confirmHandler = () => {
+            const newLatLng = tempMarker.getLatLng();
+            this.finishMovingMarker(marker, tempMarker, newLatLng, instructions);
+        };
+
+        const cancelHandler = () => {
+            this.cancelMovingMarker(marker, tempMarker, instructions);
+        };
+
+        setTimeout(() => {
+            document.getElementById('confirmMove').addEventListener('click', confirmHandler);
+            document.getElementById('cancelMove').addEventListener('click', cancelHandler);
+        }, 100);
+
+        // Também permite confirmar com duplo clique
+        tempMarker.on('dblclick', confirmHandler);
+    }
+
+    finishMovingMarker(originalMarker, tempMarker, newLatLng, instructionsControl) {
+        const action = originalMarker.actionData;
+
+        // Salva a posição personalizada para esta cidade/bairro
+        this.setCustomPosition(action.cidade, action.bairro, newLatLng.lat, newLatLng.lng);
+
+        // Atualiza a ação com as novas coordenadas
+        action.lat = newLatLng.lat;
+        action.lng = newLatLng.lng;
+
+        // Remove controles temporários
+        this.map.removeControl(instructionsControl);
+        this.map.removeLayer(tempMarker);
+
+        // Recria o marcador na nova posição
+        const newMarker = L.marker([action.lat, action.lng])
+            .bindPopup(this.createPopupContent(action))
+            .addTo(this.map);
+
+        newMarker.actionData = action;
+        newMarker.on('contextmenu', (e) => {
+            this.showMarkerContextMenu(e, newMarker);
+        });
+
+        // Substitui no array de marcadores
+        const markerIndex = this.currentMarkers.findIndex(m => m === originalMarker);
+        if (markerIndex !== -1) {
+            this.currentMarkers[markerIndex] = newMarker;
+        }
+
+        // Mostra mensagem de confirmação
+        this.showNotification(`Posição de ${action.bairro} atualizada!`, 'success');
+
+        console.log(`Ponto movido para: ${newLatLng.lat}, ${newLatLng.lng}`);
+    }
+
+    cancelMovingMarker(originalMarker, tempMarker, instructionsControl) {
+        // Remove controles temporários
+        this.map.removeControl(instructionsControl);
+        this.map.removeLayer(tempMarker);
+
+        // Restaura o marcador original
+        const action = originalMarker.actionData;
+        const restoredMarker = L.marker([action.lat, action.lng])
+            .bindPopup(this.createPopupContent(action))
+            .addTo(this.map);
+
+        restoredMarker.actionData = action;
+        restoredMarker.on('contextmenu', (e) => {
+            this.showMarkerContextMenu(e, restoredMarker);
+        });
+
+        // Substitui no array de marcadores
+        const markerIndex = this.currentMarkers.findIndex(m => m === originalMarker);
+        if (markerIndex !== -1) {
+            this.currentMarkers[markerIndex] = restoredMarker;
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Cria notificação temporária
+        const notification = L.DomUtil.create('div', 'leaflet-notification');
+        const bgColor = type === 'success' ? 'var(--primary-1)' : 'var(--muted-2)';
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 14px;
+            max-width: 300px;
+            animation: slideIn 0.3s ease;
+        `;
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="${type === 'success' ? 'check-circle' : 'info'}"></i>
+                ${message}
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Atualiza ícones
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Remove após 3 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }, 3000);
+    }
+
     showNeighborhoodCounters() {
         this.clearMap();
-        
+
         // Agrupa ações por bairro
         const neighborhoodCounts = {};
         this.actions.forEach(action => {
@@ -352,12 +847,12 @@ class ActionsManager {
             }
             neighborhoodCounts[action.bairro]++;
         });
-        
+
         // Adiciona marcadores de contagem por bairro
         Object.keys(neighborhoodCounts).forEach(bairro => {
             const count = neighborhoodCounts[bairro];
             const action = this.actions.find(a => a.bairro === bairro);
-            
+
             if (action) {
                 const marker = L.marker([action.lat, action.lng], {
                     icon: L.divIcon({
@@ -366,25 +861,25 @@ class ActionsManager {
                         iconSize: [30, 30]
                     })
                 })
-                .bindPopup(`
+                    .bindPopup(`
                     <div>
                         <strong>${bairro}</strong><br>
                         <small>Total de ações: ${count}</small>
                     </div>
                 `)
-                .addTo(this.map);
-                
+                    .addTo(this.map);
+
                 this.currentMarkers.push(marker);
             }
         });
-        
+
         this.fitMapToBounds();
         this.showLegend('Contadores por Bairro', 'var(--primary-2)');
     }
 
     showHeatMap() {
         this.clearMap();
-        
+
         // Configuração SUPER visível
         this.heatLayer = L.heatLayer(this.actions.map(action => [action.lat, action.lng, 1]), {
             radius: 50,    // Bem grande
@@ -400,19 +895,19 @@ class ActionsManager {
                 1.0: 'red'
             }
         }).addTo(this.map);
-        
+
         // Zoom mais aberto para ver o heatmap
         if (this.actions.length > 0) {
             const points = this.actions.map(action => [action.lat, action.lng]);
             const group = new L.featureGroup(points.map(point => L.marker(point)));
             this.map.fitBounds(group.getBounds().pad(0.5));
-            
+
             // Zoom máximo para heatmap
             if (this.map.getZoom() > 12) {
                 this.map.setZoom(12);
             }
         }
-        
+
         this.showHeatLegend();
     }
 
@@ -430,6 +925,9 @@ class ActionsManager {
             <div class="legend-item">
                 <div class="legend-color" style="background: ${color}"></div>
                 <span>${title}</span>
+            </div>
+            <div style="font-size: 10px; color: var(--muted-2); margin-top: 5px;">
+                💡 Clique com botão direito para mover pontos
             </div>
         `;
         legend.classList.remove('hidden');
@@ -453,7 +951,7 @@ class ActionsManager {
     }
 
     refreshMap() {
-        switch(this.currentView) {
+        switch (this.currentView) {
             case 'pontos':
                 this.showIndividualPoints();
                 break;
@@ -477,6 +975,16 @@ class ActionsManager {
     }
 
     generateCoordinates(cidade, bairro) {
+        // Primeiro verifica se existe posição personalizada
+        const customPos = this.getCustomPosition(cidade, bairro);
+        if (customPos) {
+            // Adiciona um pequeno deslocamento aleatório para não sobrepor pontos
+            return {
+                lat: customPos.lat + (Math.random() * 0.00005 - 0.000025), // ~2-5m de variação
+                lng: customPos.lng + (Math.random() * 0.00005 - 0.000025)
+            };
+        }
+
         // Coordenadas aproximadas por cidade
         const cityCoordinates = {
             'Aracaju': { lat: -10.9111, lng: -37.0717 },
@@ -509,7 +1017,7 @@ class ActionsManager {
                 lng: base.lng + (Math.random() * 0.03 - 0.015)
             };
         }
-        
+
         // Fallback genérico para Brasil
         return {
             lat: -15 + (Math.random() * 30 - 15),
@@ -528,7 +1036,7 @@ class ActionsManager {
         const formNova = document.getElementById('formNovaAcao');
         modal.classList.remove('show');
         formNova.reset();
-        
+
         // Reseta o filtro de bairros para o estado inicial
         this.showSelectCityMessage();
     }
@@ -536,26 +1044,26 @@ class ActionsManager {
     handleFormSubmit(e) {
         e.preventDefault();
         const form = e.target;
-        
+
         const cidade = form.cidade.value || '-';
         const bairro = form.bairro.value || '-';
         const tipo = form.tipoAcao.value || '-';
         const data = form.dataAcao.value;
-        
+
         // Validação adicional
         if (!cidade || cidade === '' || cidade === 'Selecione uma cidade') {
             alert('Por favor, selecione uma cidade');
             return;
         }
-        
+
         if (!bairro || bairro === '' || bairro.includes('Selecione')) {
             alert('Por favor, selecione um bairro');
             return;
         }
-        
-        // Gera coordenadas
+
+        // Gera coordenadas (agora usa posições personalizadas se existirem)
         const coords = this.generateCoordinates(cidade, bairro);
-        
+
         // Formata data
         let dataFmt = '';
         if (data) {
@@ -592,34 +1100,34 @@ class ActionsManager {
         console.log('Total de ações:', this.actions.length);
     }
 
-renderTable() {
-    const tbody = document.getElementById('acoesTbody');
-    tbody.innerHTML = '';
+    renderTable() {
+        const tbody = document.getElementById('acoesTbody');
+        tbody.innerHTML = '';
 
-    this.actions.forEach(action => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${action.cidade}</td>
-            <td>${action.bairro}</td>
-            <td>${action.tipo}</td>
-            <td>${action.data}</td>
-            <td class="actions-cell">
-                <button class="btn-icon btn-edit tooltip" data-action="edit" data-id="${action.id}" data-tooltip="Editar">
-                    <i data-lucide="edit-2"></i>
-                </button>
-                <button class="btn-icon btn-delete tooltip" data-action="delete" data-id="${action.id}" data-tooltip="Apagar">
-                    <i data-lucide="trash-2"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+        this.actions.forEach(action => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${action.cidade}</td>
+                <td>${action.bairro}</td>
+                <td>${action.tipo}</td>
+                <td>${action.data}</td>
+                <td class="actions-cell">
+                    <button class="btn-icon btn-edit tooltip" data-action="edit" data-id="${action.id}" data-tooltip="Editar">
+                        <i data-lucide="edit-2"></i>
+                    </button>
+                    <button class="btn-icon btn-delete tooltip" data-action="delete" data-id="${action.id}" data-tooltip="Apagar">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
 
-    // Atualiza ícones do Lucide
-    if (window.lucide) {
-        lucide.createIcons();
+        // Atualiza ícones do Lucide
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     }
-}
 
     handleTableClick(e) {
         const btn = e.target.closest('button');
@@ -653,10 +1161,10 @@ renderTable() {
         form.cidade.value = action.cidade;
         form.bairro.value = action.bairro;
         form.tipoAcao.value = action.tipo;
-        
+
         // Atualiza os bairros baseados na cidade
         this.updateBairrosByCidade(action.cidade);
-        
+
         // Converte data de dd/mm/yyyy para yyyy-mm-dd
         if (action.data && action.data.includes('/')) {
             const parts = action.data.split('/');
@@ -671,7 +1179,7 @@ renderTable() {
         // Remove event listeners anteriores e adiciona um novo para edição
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
-        
+
         newForm.addEventListener('submit', (e) => {
             e.preventDefault();
             this.updateAction(id, newForm);
@@ -736,7 +1244,7 @@ renderTable() {
 
 // ================= CONFIG GLOBAL =================
 // Inicializa quando a página carrega
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Inicializa ícones do Lucide
     if (window.lucide) {
         lucide.createIcons();
@@ -746,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.actionsManager = new ActionsManager();
 
     // ================= MENU E CONFIGURAÇÕES GLOBAIS =================
-    
+
     // Navegação do menu (simples, carrega outras páginas)
     document.querySelectorAll('.menu-item').forEach(button => {
         button.addEventListener('click', () => {
@@ -773,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         localStorage.setItem('theme', theme);
     }
-    
+
     // elementos
     const themeToggle = document.getElementById('themeToggle');
     const themeLabel = document.getElementById('themeLabel');
@@ -842,3 +1350,49 @@ document.addEventListener('DOMContentLoaded', function() {
     if (storedName && profileName) profileName.textContent = storedName;
     if (storedToken && tokenShort) tokenShort.textContent = storedToken.slice(0, 12) + '…';
 });
+
+// Adiciona os estilos CSS para as animações
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .leaflet-contextmenu {
+        animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .contextmenu-item:hover {
+        background: var(--menu-hover-bg) !important;
+    }
+`;
+document.head.appendChild(style);

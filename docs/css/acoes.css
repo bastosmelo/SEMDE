@@ -833,3 +833,79 @@ textarea {
 .dark .btn-delete:hover {
     background: #dc2626 !important;
 }
+
+/* Estilos para o sistema de mover pontos */
+.leaflet-contextmenu {
+    font-family: 'Baloo 2', sans-serif;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+}
+
+.leaflet-contextmenu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.leaflet-contextmenu-item:last-child {
+    border-bottom: none;
+}
+
+.leaflet-contextmenu-item:hover {
+    background: var(--menu-hover-bg);
+}
+
+.moving-instructions {
+    background: white;
+    border: 2px solid var(--primary-1);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Baloo 2', sans-serif;
+}
+
+.moving-instructions button {
+    transition: all 0.2s;
+}
+
+.moving-instructions button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+/* Animações para notificações */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.leaflet-notification {
+    animation: slideIn 0.3s ease;
+}
+
+.leaflet-notification.slide-out {
+    animation: slideOut 0.3s ease;
+}

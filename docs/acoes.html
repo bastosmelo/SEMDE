@@ -17,6 +17,11 @@
   <!-- Lucide icons -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
 
+  <!-- Bibliotecas para exportação -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 </head>
 
 <body>
@@ -115,8 +120,8 @@
             <h2>Registro de Ações</h2>
             <div class="registry-controls">
               <button id="openNovaAcao" class="btn btn-primary"><i data-lucide="plus"></i> Nova Ação</button>
-              <button class="btn btn-outline"><i data-lucide="file-text"></i> PDF</button>
-              <button class="btn btn-outline"><i data-lucide="file"></i> Excel</button>
+              <button id="exportPDF" class="btn btn-outline"><i data-lucide="file-text"></i> PDF</button>
+              <button id="exportExcel" class="btn btn-outline"><i data-lucide="file"></i> Excel</button>
             </div>
           </div>
 
