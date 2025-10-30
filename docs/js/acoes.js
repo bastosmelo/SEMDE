@@ -1,15 +1,20 @@
 // Sistema de gerenciamento de ações
 class ActionsManager {
     constructor() {
+        // Configuração da API
+        this.API_BASE = "http://127.0.0.1:8000";
+        this.token = localStorage.getItem("token");
+        
         // Botões de exportação (com IDs específicos)
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
-        this.actions = this.loadInitialData();
+        
+        this.actions = [];
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
         this.currentView = 'calor';
-        this.nextId = this.actions.length > 0 ? Math.max(...this.actions.map(a => a.id)) + 1 : 1;
+        this.nextId = 1;
 
         // Sistema de posições personalizadas
         this.customPositions = this.loadCustomPositions();
@@ -139,193 +144,173 @@ class ActionsManager {
                 'Ilha do Príncipe', 'Jucutuquara'
             ]
         };
+        
         this.init();
-
-
     }
 
-    // Métodos de exportação
-    exportToPDF() {
-        const { jsPDF } = window.jspdf;
+    // ==================== MÉTODOS DA API ====================
 
-        // Cria o documento PDF
-        const doc = new jsPDF();
+    async makeApiCall(endpoint, options = {}) {
+        try {
+            const response = await fetch(`${this.API_BASE}${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
 
-        // Cabeçalho do PDF
-        doc.setFontSize(20);
-        doc.setTextColor(40, 40, 40);
-        doc.text('Relatório de Ações', 105, 20, { align: 'center' });
-
-        // Data de geração
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 105, 28, { align: 'center' });
-
-        // Estatísticas
-        doc.setFontSize(12);
-        doc.setTextColor(60, 60, 60);
-        doc.text(`Total de Ações: ${this.actions.length}`, 14, 40);
-
-        const cities = new Set(this.actions.map(action => action.cidade));
-        const neighborhoods = new Set(this.actions.map(action => action.bairro));
-        doc.text(`Cidades Ativas: ${cities.size}`, 14, 48);
-        doc.text(`Bairros Cobertos: ${neighborhoods.size}`, 14, 56);
-
-        // Tabela de ações
-        const tableColumn = ["Cidade", "Bairro", "Tipo", "Data"];
-        const tableRows = [];
-
-        this.actions.forEach(action => {
-            const actionData = [
-                action.cidade,
-                action.bairro,
-                action.tipo,
-                action.data
-            ];
-            tableRows.push(actionData);
-        });
-
-        // Adiciona a tabela
-        doc.autoTable({
-            head: [tableColumn],
-            body: tableRows,
-            startY: 65,
-            theme: 'grid',
-            styles: {
-                font: 'helvetica',
-                fontSize: 10,
-                cellPadding: 3,
-                lineColor: [200, 200, 200],
-                lineWidth: 0.1,
-            },
-            headStyles: {
-                fillColor: [57, 104, 255],
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-            },
-            alternateRowStyles: {
-                fillColor: [245, 245, 245],
-            },
-            margin: { top: 10 },
-        });
-
-        // Rodapé
-        const finalY = doc.lastAutoTable.finalY + 10;
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text('Sistema de Gestão de Ações - Relatório gerado automaticamente', 105, finalY, { align: 'center' });
-
-        // Salva o PDF
-        doc.save(`relatorio-acoes-${new Date().toISOString().split('T')[0]}.pdf`);
-
-        this.showNotification('PDF gerado com sucesso!', 'success');
-    }
-
-    exportToExcel() {
-        // Prepara os dados
-        const data = this.actions.map(action => ({
-            'Cidade': action.cidade,
-            'Bairro': action.bairro,
-            'Tipo da Ação': action.tipo,
-            'Data': action.data,
-            'Latitude': action.lat,
-            'Longitude': action.lng
-        }));
-
-        // Adiciona linha de estatísticas
-        const cities = new Set(this.actions.map(action => action.cidade));
-        const neighborhoods = new Set(this.actions.map(action => action.bairro));
-
-        data.unshift({}); // Linha vazia
-        data.unshift({
-            'Cidade': `ESTATÍSTICAS`,
-            'Bairro': `Total: ${this.actions.length} ações`,
-            'Tipo da Ação': `${cities.size} cidades`,
-            'Data': `${neighborhoods.size} bairros`
-        });
-        data.unshift({
-            'Cidade': `RELATÓRIO DE AÇÕES`,
-            'Bairro': `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
-            'Tipo da Ação': '',
-            'Data': ''
-        });
-
-        // Cria a worksheet
-        const ws = XLSX.utils.json_to_sheet(data, { skipHeader: true });
-
-        // Ajusta as larguras das colunas
-        const wscols = [
-            { wch: 15 }, // Cidade
-            { wch: 20 }, // Bairro
-            { wch: 25 }, // Tipo
-            { wch: 12 }, // Data
-            { wch: 12 }, // Latitude
-            { wch: 12 }  // Longitude
-        ];
-        ws['!cols'] = wscols;
-
-        // Formata o cabeçalho
-        if (!ws['!merges']) ws['!merges'] = [];
-        ws['!merges'].push(
-            { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Título
-            { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }  // Estatísticas
-        );
-
-        // Adiciona estilos básicos (Excel não suporta CSS completo)
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        for (let R = range.s.r; R <= range.e.r; R++) {
-            for (let C = range.s.c; C <= range.e.c; C++) {
-                const cell_address = { c: C, r: R };
-                const cell_ref = XLSX.utils.encode_cell(cell_address);
-
-                if (!ws[cell_ref]) continue;
-
-                // Formata título
-                if (R === 0) {
-                    ws[cell_ref].s = {
-                        font: { sz: 14, bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "3968FF" } },
-                        alignment: { horizontal: "center" }
-                    };
-                }
-                // Formata estatísticas
-                else if (R === 1) {
-                    ws[cell_ref].s = {
-                        font: { sz: 11, bold: true, color: { rgb: "3968FF" } },
-                        fill: { fgColor: { rgb: "F0F4FF" } }
-                    };
-                }
-                // Formata cabeçalho da tabela
-                else if (R === 3) {
-                    ws[cell_ref].s = {
-                        font: { sz: 10, bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "4AD6C1" } },
-                        alignment: { horizontal: "center" }
-                    };
-                }
-                // Formata dados
-                else if (R > 3) {
-                    ws[cell_ref].s = {
-                        font: { sz: 9 },
-                        border: {
-                            top: { style: "thin", color: { rgb: "E0E0E0" } },
-                            left: { style: "thin", color: { rgb: "E0E0E0" } },
-                            bottom: { style: "thin", color: { rgb: "E0E0E0" } },
-                            right: { style: "thin", color: { rgb: "E0E0E0" } }
-                        }
-                    };
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
         }
+    }
 
-        // Cria o workbook e adiciona a worksheet
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Ações");
+    // Buscar ações do banco
+    async loadActions() {
+        try {
+            const data = await this.makeApiCall('/acoes');
+            this.actions = data.map(action => ({
+                id: action.id,
+                cidade: action.cidade,
+                bairro: action.bairro,
+                tipo: action.tipo,
+                data: this.formatDate(action.data),
+                lat: action.lat || this.generateCoordinates(action.cidade, action.bairro).lat,
+                lng: action.lng || this.generateCoordinates(action.cidade, action.bairro).lng,
+                descricao: action.descricao,
+                responsavel: action.responsavel,
+                contato: action.contato
+            }));
+            
+            this.nextId = this.actions.length > 0 ? Math.max(...this.actions.map(a => a.id)) + 1 : 1;
+            return this.actions;
+        } catch (error) {
+            console.warn('Erro ao carregar ações, usando dados demo:', error);
+            // Fallback para dados demo
+            this.actions = this.loadInitialData();
+            return this.actions;
+        }
+    }
 
-        // Salva o arquivo
-        XLSX.writeFile(wb, `relatorio-acoes-${new Date().toISOString().split('T')[0]}.xlsx`);
+    // Salvar nova ação no banco
+    async saveAction(actionData) {
+        try {
+            const response = await this.makeApiCall('/acoes', {
+                method: 'POST',
+                body: JSON.stringify({
+                    titulo: actionData.tipo,
+                    descricao: actionData.descricao,
+                    tipo: actionData.tipo,
+                    data: this.parseDateToAPI(actionData.data),
+                    cidade: actionData.cidade,
+                    bairro: actionData.bairro,
+                    responsavel: actionData.responsavel,
+                    contato: actionData.contato
+                })
+            });
 
-        this.showNotification('Excel gerado com sucesso!', 'success');
+            return response;
+        } catch (error) {
+            console.error('Erro ao salvar ação:', error);
+            throw error;
+        }
+    }
+
+    // Atualizar ação existente
+    async updateActionAPI(actionId, actionData) {
+        try {
+            const response = await this.makeApiCall(`/acoes/${actionId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    titulo: actionData.tipo,
+                    descricao: actionData.descricao,
+                    tipo: actionData.tipo,
+                    data: this.parseDateToAPI(actionData.data),
+                    cidade: actionData.cidade,
+                    bairro: actionData.bairro,
+                    responsavel: actionData.responsavel,
+                    contato: actionData.contato
+                })
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Erro ao atualizar ação:', error);
+            throw error;
+        }
+    }
+
+    // Excluir ação
+    async deleteActionFromAPI(actionId) {
+        try {
+            const response = await this.makeApiCall(`/acoes/${actionId}`, {
+                method: 'DELETE'
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Erro ao excluir ação:', error);
+            throw error;
+        }
+    }
+
+    // Buscar estatísticas
+    async loadStatistics() {
+        try {
+            const data = await this.makeApiCall('/estatisticas');
+            return data;
+        } catch (error) {
+            console.warn('Erro ao carregar estatísticas:', error);
+            return this.calculateLocalStatistics();
+        }
+    }
+
+    // ==================== MÉTODOS AUXILIARES ====================
+
+    formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = date.getFullYear();
+        return `${dd}/${mm}/${yy}`;
+    }
+
+    parseDateToAPI(dateString) {
+        if (!dateString || dateString === '-') return null;
+        
+        if (dateString.includes('/')) {
+            const parts = dateString.split('/');
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        
+        return dateString;
+    }
+
+    calculateLocalStatistics() {
+        const totalActions = this.actions.length;
+        const cities = new Set(this.actions.map(action => action.cidade));
+        const neighborhoods = new Set(this.actions.map(action => action.bairro));
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        return {
+            total_actions: totalActions,
+            active_cities: cities.size,
+            covered_neighborhoods: neighborhoods.size,
+            monthly_actions: this.actions.filter(action => {
+                const actionDate = new Date(this.parseDateToAPI(action.data));
+                return actionDate.getMonth() === currentMonth && 
+                       actionDate.getFullYear() === currentYear;
+            }).length
+        };
     }
 
     loadInitialData() {
@@ -340,6 +325,196 @@ class ActionsManager {
             { id: 8, cidade: 'Estância', bairro: 'São José', tipo: 'Panfletagem', data: '08/07/2025', lat: -11.2550, lng: -37.4450 }
         ];
     }
+
+    // ==================== MÉTODOS PRINCIPAIS ATUALIZADOS ====================
+
+    async init() {
+        await this.loadActions();
+        this.initMap();
+        this.initCityFilter();
+        this.initEventListeners();
+        this.renderTable();
+        await this.updateCounters();
+        this.refreshMap();
+    }
+
+    async handleFormSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+
+        const cidade = form.cidade.value || '-';
+        const bairro = form.bairro.value || '-';
+        const tipo = form.tipoAcao.value || '-';
+        const data = form.dataAcao.value;
+        const descricao = form.descricao.value || '';
+        const responsavel = form.responsavel.value || '';
+        const contato = form.contato.value || '';
+
+        // Validação
+        if (!cidade || cidade === '' || cidade === 'Selecione uma cidade') {
+            alert('Por favor, selecione uma cidade');
+            return;
+        }
+
+        if (!bairro || bairro === '' || bairro.includes('Selecione')) {
+            alert('Por favor, selecione um bairro');
+            return;
+        }
+
+        // Gera coordenadas
+        const coords = this.generateCoordinates(cidade, bairro);
+
+        // Formata data
+        let dataFmt = '';
+        if (data) {
+            const d = new Date(data);
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yy = d.getFullYear();
+            dataFmt = `${dd}/${mm}/${yy}`;
+        } else {
+            dataFmt = '-';
+        }
+
+        // Cria nova ação
+        const newAction = {
+            id: this.nextId++, // ID temporário
+            cidade: cidade,
+            bairro: bairro,
+            tipo: tipo,
+            data: dataFmt,
+            lat: coords.lat,
+            lng: coords.lng,
+            descricao: descricao,
+            responsavel: responsavel,
+            contato: contato
+        };
+
+        try {
+            // Salva no backend
+            const savedAction = await this.saveAction(newAction);
+            
+            // Atualiza com ID real do banco
+            newAction.id = savedAction.id;
+            
+            // Adiciona localmente
+            this.actions.unshift(newAction);
+
+            // Atualiza a interface
+            this.renderTable();
+            await this.updateCounters();
+            this.refreshMap();
+            this.closeModal();
+
+            this.showNotification('Ação salva com sucesso!', 'success');
+            
+        } catch (error) {
+            this.showNotification('Erro ao salvar ação. Tente novamente.', 'error');
+        }
+    }
+
+    async updateAction(id, form) {
+        const cidade = form.cidade.value || '-';
+        const bairro = form.bairro.value || '-';
+        const tipo = form.tipoAcao.value || '-';
+        const data = form.dataAcao.value;
+        const descricao = form.descricao.value || '';
+        const responsavel = form.responsavel.value || '';
+        const contato = form.contato.value || '';
+
+        // Validação
+        if (!cidade || !bairro) {
+            alert('Por favor, preencha cidade e bairro');
+            return;
+        }
+
+        // Formata data
+        let dataFmt = '';
+        if (data) {
+            const d = new Date(data);
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yy = d.getFullYear();
+            dataFmt = `${dd}/${mm}/${yy}`;
+        } else {
+            dataFmt = '-';
+        }
+
+        try {
+            // Atualiza no backend
+            await this.updateActionAPI(id, {
+                cidade: cidade,
+                bairro: bairro,
+                tipo: tipo,
+                data: dataFmt,
+                descricao: descricao,
+                responsavel: responsavel,
+                contato: contato
+            });
+
+            // Atualiza localmente
+            const actionIndex = this.actions.findIndex(a => a.id === id);
+            if (actionIndex !== -1) {
+                this.actions[actionIndex] = {
+                    ...this.actions[actionIndex],
+                    cidade: cidade,
+                    bairro: bairro,
+                    tipo: tipo,
+                    data: dataFmt,
+                    descricao: descricao,
+                    responsavel: responsavel,
+                    contato: contato
+                };
+
+                // Atualiza a interface
+                this.renderTable();
+                this.refreshMap();
+                this.closeModal();
+                
+                this.showNotification('Ação atualizada com sucesso!', 'success');
+            }
+        } catch (error) {
+            this.showNotification('Erro ao atualizar ação. Tente novamente.', 'error');
+        }
+    }
+
+    async deleteAction(id) {
+        if (confirm('Excluir esta ação?')) {
+            try {
+                await this.deleteActionFromAPI(id);
+                
+                // Remove localmente
+                this.actions = this.actions.filter(action => action.id !== id);
+                this.renderTable();
+                await this.updateCounters();
+                this.refreshMap();
+                
+                this.showNotification('Ação excluída com sucesso!', 'success');
+            } catch (error) {
+                this.showNotification('Erro ao excluir ação. Tente novamente.', 'error');
+            }
+        }
+    }
+
+    async updateCounters() {
+        try {
+            const stats = await this.loadStatistics();
+            
+            document.getElementById('totalActions').textContent = stats.total_actions;
+            document.getElementById('activeCities').textContent = stats.active_cities;
+            document.getElementById('coveredNeighborhoods').textContent = stats.covered_neighborhoods;
+            document.getElementById('monthActions').textContent = stats.monthly_actions;
+        } catch (error) {
+            // Fallback para cálculo local
+            const stats = this.calculateLocalStatistics();
+            document.getElementById('totalActions').textContent = stats.total_actions;
+            document.getElementById('activeCities').textContent = stats.active_cities;
+            document.getElementById('coveredNeighborhoods').textContent = stats.covered_neighborhoods;
+            document.getElementById('monthActions').textContent = stats.monthly_actions;
+        }
+    }
+
+    // ==================== MÉTODOS ORIGINAIS (MANTIDOS COMPLETOS) ====================
 
     // Sistema de posições personalizadas
     loadCustomPositions() {
@@ -364,15 +539,6 @@ class ActionsManager {
         const key = this.getPositionKey(cidade, bairro);
         this.customPositions[key] = { lat, lng };
         this.saveCustomPositions();
-    }
-
-    init() {
-        this.initMap();
-        this.initCityFilter();
-        this.initEventListeners();
-        this.renderTable();
-        this.updateCounters();
-        this.refreshMap();
     }
 
     // Sistema de filtro cidade/bairro
@@ -650,6 +816,7 @@ class ActionsManager {
             this.currentContextMenu = null;
         }
     }
+
     // Inicia o processo de mover marcador
     startMovingMarker(marker) {
         // Remove o marcador original temporariamente
@@ -1041,65 +1208,6 @@ class ActionsManager {
         this.showSelectCityMessage();
     }
 
-    handleFormSubmit(e) {
-        e.preventDefault();
-        const form = e.target;
-
-        const cidade = form.cidade.value || '-';
-        const bairro = form.bairro.value || '-';
-        const tipo = form.tipoAcao.value || '-';
-        const data = form.dataAcao.value;
-
-        // Validação adicional
-        if (!cidade || cidade === '' || cidade === 'Selecione uma cidade') {
-            alert('Por favor, selecione uma cidade');
-            return;
-        }
-
-        if (!bairro || bairro === '' || bairro.includes('Selecione')) {
-            alert('Por favor, selecione um bairro');
-            return;
-        }
-
-        // Gera coordenadas (agora usa posições personalizadas se existirem)
-        const coords = this.generateCoordinates(cidade, bairro);
-
-        // Formata data
-        let dataFmt = '';
-        if (data) {
-            const d = new Date(data);
-            const dd = String(d.getDate()).padStart(2, '0');
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const yy = d.getFullYear();
-            dataFmt = `${dd}/${mm}/${yy}`;
-        } else {
-            dataFmt = '-';
-        }
-
-        // Cria nova ação
-        const newAction = {
-            id: this.nextId++,
-            cidade: cidade,
-            bairro: bairro,
-            tipo: tipo,
-            data: dataFmt,
-            lat: coords.lat,
-            lng: coords.lng
-        };
-
-        // Adiciona aos dados
-        this.actions.unshift(newAction);
-
-        // Atualiza a interface
-        this.renderTable();
-        this.updateCounters();
-        this.refreshMap();
-        this.closeModal();
-
-        console.log('Nova ação adicionada:', newAction);
-        console.log('Total de ações:', this.actions.length);
-    }
-
     renderTable() {
         const tbody = document.getElementById('acoesTbody');
         tbody.innerHTML = '';
@@ -1143,15 +1251,6 @@ class ActionsManager {
         }
     }
 
-    deleteAction(id) {
-        if (confirm('Excluir esta ação?')) {
-            this.actions = this.actions.filter(action => action.id !== id);
-            this.renderTable();
-            this.updateCounters();
-            this.refreshMap();
-        }
-    }
-
     editAction(id) {
         const action = this.actions.find(a => a.id === id);
         if (!action) return;
@@ -1161,6 +1260,9 @@ class ActionsManager {
         form.cidade.value = action.cidade;
         form.bairro.value = action.bairro;
         form.tipoAcao.value = action.tipo;
+        form.descricao.value = action.descricao || '';
+        form.responsavel.value = action.responsavel || '';
+        form.contato.value = action.contato || '';
 
         // Atualiza os bairros baseados na cidade
         this.updateBairrosByCidade(action.cidade);
@@ -1186,65 +1288,201 @@ class ActionsManager {
         });
     }
 
-    updateAction(id, form) {
-        const cidade = form.cidade.value || '-';
-        const bairro = form.bairro.value || '-';
-        const tipo = form.tipoAcao.value || '-';
-        const data = form.dataAcao.value;
+    // Métodos de exportação (MANTIDOS COMPLETOS)
+    exportToPDF() {
+        const { jsPDF } = window.jspdf;
 
-        // Validação
-        if (!cidade || !bairro) {
-            alert('Por favor, preencha cidade e bairro');
-            return;
-        }
+        // Cria o documento PDF
+        const doc = new jsPDF();
 
-        // Formata data
-        let dataFmt = '';
-        if (data) {
-            const d = new Date(data);
-            const dd = String(d.getDate()).padStart(2, '0');
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const yy = d.getFullYear();
-            dataFmt = `${dd}/${mm}/${yy}`;
-        } else {
-            dataFmt = '-';
-        }
+        // Cabeçalho do PDF
+        doc.setFontSize(20);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Relatório de Ações', 105, 20, { align: 'center' });
 
-        // Atualiza a ação
-        const actionIndex = this.actions.findIndex(a => a.id === id);
-        if (actionIndex !== -1) {
-            this.actions[actionIndex] = {
-                ...this.actions[actionIndex],
-                cidade: cidade,
-                bairro: bairro,
-                tipo: tipo,
-                data: dataFmt
-            };
+        // Data de geração
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 105, 28, { align: 'center' });
 
-            // Atualiza a interface
-            this.renderTable();
-            this.refreshMap();
-            this.closeModal();
-        }
+        // Estatísticas
+        doc.setFontSize(12);
+        doc.setTextColor(60, 60, 60);
+        doc.text(`Total de Ações: ${this.actions.length}`, 14, 40);
+
+        const cities = new Set(this.actions.map(action => action.cidade));
+        const neighborhoods = new Set(this.actions.map(action => action.bairro));
+        doc.text(`Cidades Ativas: ${cities.size}`, 14, 48);
+        doc.text(`Bairros Cobertos: ${neighborhoods.size}`, 14, 56);
+
+        // Tabela de ações
+        const tableColumn = ["Cidade", "Bairro", "Tipo", "Data"];
+        const tableRows = [];
+
+        this.actions.forEach(action => {
+            const actionData = [
+                action.cidade,
+                action.bairro,
+                action.tipo,
+                action.data
+            ];
+            tableRows.push(actionData);
+        });
+
+        // Adiciona a tabela
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 65,
+            theme: 'grid',
+            styles: {
+                font: 'helvetica',
+                fontSize: 10,
+                cellPadding: 3,
+                lineColor: [200, 200, 200],
+                lineWidth: 0.1,
+            },
+            headStyles: {
+                fillColor: [57, 104, 255],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245],
+            },
+            margin: { top: 10 },
+        });
+
+        // Rodapé
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Sistema de Gestão de Ações - Relatório gerado automaticamente', 105, finalY, { align: 'center' });
+
+        // Salva o PDF
+        doc.save(`relatorio-acoes-${new Date().toISOString().split('T')[0]}.pdf`);
+
+        this.showNotification('PDF gerado com sucesso!', 'success');
     }
 
-    updateCounters() {
-        const totalActions = this.actions.length;
-        document.getElementById('totalActions').textContent = totalActions;
+    exportToExcel() {
+        // Prepara os dados
+        const data = this.actions.map(action => ({
+            'Cidade': action.cidade,
+            'Bairro': action.bairro,
+            'Tipo da Ação': action.tipo,
+            'Data': action.data,
+            'Latitude': action.lat,
+            'Longitude': action.lng
+        }));
 
-        // Contar cidades únicas
+        // Adiciona linha de estatísticas
         const cities = new Set(this.actions.map(action => action.cidade));
-        document.getElementById('activeCities').textContent = cities.size;
-
-        // Contar bairros únicos
         const neighborhoods = new Set(this.actions.map(action => action.bairro));
-        document.getElementById('coveredNeighborhoods').textContent = neighborhoods.size;
+
+        data.unshift({}); // Linha vazia
+        data.unshift({
+            'Cidade': `ESTATÍSTICAS`,
+            'Bairro': `Total: ${this.actions.length} ações`,
+            'Tipo da Ação': `${cities.size} cidades`,
+            'Data': `${neighborhoods.size} bairros`
+        });
+        data.unshift({
+            'Cidade': `RELATÓRIO DE AÇÕES`,
+            'Bairro': `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+            'Tipo da Ação': '',
+            'Data': ''
+        });
+
+        // Cria a worksheet
+        const ws = XLSX.utils.json_to_sheet(data, { skipHeader: true });
+
+        // Ajusta as larguras das colunas
+        const wscols = [
+            { wch: 15 }, // Cidade
+            { wch: 20 }, // Bairro
+            { wch: 25 }, // Tipo
+            { wch: 12 }, // Data
+            { wch: 12 }, // Latitude
+            { wch: 12 }  // Longitude
+        ];
+        ws['!cols'] = wscols;
+
+        // Formata o cabeçalho
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push(
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Título
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }  // Estatísticas
+        );
+
+        // Adiciona estilos básicos (Excel não suporta CSS completo)
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cell_address = { c: C, r: R };
+                const cell_ref = XLSX.utils.encode_cell(cell_address);
+
+                if (!ws[cell_ref]) continue;
+
+                // Formata título
+                if (R === 0) {
+                    ws[cell_ref].s = {
+                        font: { sz: 14, bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "3968FF" } },
+                        alignment: { horizontal: "center" }
+                    };
+                }
+                // Formata estatísticas
+                else if (R === 1) {
+                    ws[cell_ref].s = {
+                        font: { sz: 11, bold: true, color: { rgb: "3968FF" } },
+                        fill: { fgColor: { rgb: "F0F4FF" } }
+                    };
+                }
+                // Formata cabeçalho da tabela
+                else if (R === 3) {
+                    ws[cell_ref].s = {
+                        font: { sz: 10, bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "4AD6C1" } },
+                        alignment: { horizontal: "center" }
+                    };
+                }
+                // Formata dados
+                else if (R > 3) {
+                    ws[cell_ref].s = {
+                        font: { sz: 9 },
+                        border: {
+                            top: { style: "thin", color: { rgb: "E0E0E0" } },
+                            left: { style: "thin", color: { rgb: "E0E0E0" } },
+                            bottom: { style: "thin", color: { rgb: "E0E0E0" } },
+                            right: { style: "thin", color: { rgb: "E0E0E0" } }
+                        }
+                    };
+                }
+            }
+        }
+
+        // Cria o workbook e adiciona a worksheet
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ações");
+
+        // Salva o arquivo
+        XLSX.writeFile(wb, `relatorio-acoes-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        this.showNotification('Excel gerado com sucesso!', 'success');
     }
 }
 
 // ================= CONFIG GLOBAL =================
 // Inicializa quando a página carrega
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    // Verifica se usuário está logado
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'index.html';
+        return;
+    }
+
     // Inicializa ícones do Lucide
     if (window.lucide) {
         lucide.createIcons();

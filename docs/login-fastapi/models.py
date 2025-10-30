@@ -12,6 +12,24 @@ class Usuario(Base):
     ativo = Column(Boolean, default=True)
     criado_em = Column(TIMESTAMP)
     perfis = relationship("UsuarioPerfil", back_populates="usuario")
+    
+class Acao(Base):
+    __tablename__ = "acoes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    titulo = Column(String(150), nullable=False)
+    descricao = Column(Text)
+    tipo = Column(String(50))
+    data = Column(Date)
+    cidade = Column(String(100))
+    bairro = Column(String(100))
+    lat = Column(Numeric(10, 6))
+    lng = Column(Numeric(10, 6))
+    responsavel = Column(String(100))
+    contato = Column(String(20))
+    criado_em = Column(TIMESTAMP, default=func.now())
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+
 
 
 class Perfil(Base):
