@@ -200,28 +200,45 @@ class ActionsManager {
     }
 
     // Salvar nova ação no banco
-    async saveAction(actionData) {
-        try {
-            const response = await this.makeApiCall('/acoes', {
-                method: 'POST',
-                body: JSON.stringify({
-                    titulo: actionData.tipo,
-                    descricao: actionData.descricao,
-                    tipo: actionData.tipo,
-                    data: this.parseDateToAPI(actionData.data),
-                    cidade: actionData.cidade,
-                    bairro: actionData.bairro,
-                    responsavel: actionData.responsavel,
-                    contato: actionData.contato
-                })
-            });
+async saveAction(actionData) {
+    try {
+        console.log('📤 Enviando dados para API:', actionData);
+        
+        const response = await fetch(`${this.API_BASE}/acoes`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                titulo: actionData.tipo,
+                descricao: actionData.descricao,
+                tipo: actionData.tipo,
+                data: this.parseDateToAPI(actionData.data),
+                cidade: actionData.cidade,
+                bairro: actionData.bairro,
+                responsavel: actionData.responsavel,
+                contato: actionData.contato
+            })
+        });
 
-            return response;
-        } catch (error) {
-            console.error('Erro ao salvar ação:', error);
-            throw error;
+        console.log('📥 Resposta da API - Status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erro HTTP:', response.status, errorText);
+            throw new Error(`Erro ${response.status}: ${errorText}`);
         }
+
+        const result = await response.json();
+        console.log('✅ Ação salva com sucesso:', result);
+        return result;
+
+    } catch (error) {
+        console.error('💥 Erro completo ao salvar ação:', error);
+        throw error;
     }
+}
 
     // Atualizar ação existente
     async updateActionAPI(actionId, actionData) {
