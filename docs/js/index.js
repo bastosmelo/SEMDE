@@ -83,6 +83,7 @@ function showLogin() {
   authCard.classList.remove("hidden");
   localStorage.removeItem("token");
   localStorage.removeItem("name");
+  localStorage.removeItem("userData");
 }
 
 
@@ -131,23 +132,23 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// ATUALIZAÇÃO: Função de login modificada para trabalhar com PostgreSQL
 loginForm.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   authAlert.style.display = "none";
 
-
   const email = loginForm.email.value.trim();
   const senha = loginForm.senha.value;
 
-
-  if (!email || !senha) { showAlert("Preencha e-mail e senha."); return; }
-
+  if (!email || !senha) { 
+    showAlert("Preencha e-mail e senha."); 
+    return; 
+  }
 
   const btn = document.getElementById("loginBtn");
   const prevText = btn.textContent;
   btn.textContent = "Validando...";
   btn.disabled = true;
-
 
   if (USE_BACKEND) {
     try {
@@ -157,38 +158,48 @@ loginForm.addEventListener("submit", async (ev) => {
         body: JSON.stringify({ email, senha })
       });
 
+      const data = await resp.json();
 
       if (!resp.ok) {
-        if (resp.status === 401) showAlert("E-mail ou senha incorretos.");
-        else showAlert(`Erro no servidor: ${resp.status}`);
-        btn.textContent = prevText; btn.disabled = false; return;
+        showAlert(data.error || `Erro no servidor: ${resp.status}`);
+        btn.textContent = prevText; 
+        btn.disabled = false; 
+        return;
       }
 
+      const token = data.access_token;
+      const name = data.user?.nome || data.name || email.split("@")[0];
 
-      const data = await resp.json();
-      const token = data.access_token || data.token || null;
-      const name = data.name || data.usuario || email.split("@")[0];
-
-
-      if (!token) { showAlert("Resposta do servidor inválida (token ausente)."); btn.textContent = prevText; btn.disabled = false; return; }
-
+      if (!token) { 
+        showAlert("Resposta do servidor inválida (token ausente)."); 
+        btn.textContent = prevText; 
+        btn.disabled = false; 
+        return; 
+      }
 
       localStorage.setItem("token", token);
       localStorage.setItem("name", name);
+      localStorage.setItem("userData", JSON.stringify(data.user || data));
+      
       showDashboard(token, name);
-      btn.textContent = prevText; btn.disabled = false;
+      
     } catch (err) {
-      console.warn("Erro backend:", err);
-      showAlert("Falha na conexão com o servidor — usando modo demo.", false);
-      if ((email === "admin@demo.com" && senha === "demo123") || (email === "user@demo.com" && senha === "user123")) {
-        const demoToken = "demo-token-1234567890";
+      console.error("Erro backend:", err);
+      showAlert("Falha na conexão com o servidor.");
+      
+      // Modo demo de fallback
+      if ((email === "admin@demo.com" && senha === "admin123") || 
+          (email === "user@demo.com" && senha === "user123")) {
+        const demoToken = "demo-token-postgres-fallback";
         localStorage.setItem("token", demoToken);
         localStorage.setItem("name", email.split("@")[0]);
         showDashboard(demoToken, email.split("@")[0]);
       } else {
-        showAlert("Não foi possível validar: verifique suas credenciais (modo demo usa admin@demo.com/demo123).");
+        showAlert("Não foi possível conectar ao servidor.");
       }
-      btn.textContent = prevText; btn.disabled = false;
+    } finally {
+      btn.textContent = prevText; 
+      btn.disabled = false;
     }
   } else {
     if ((email === "admin@demo.com" && senha === "demo123") || (email === "user@demo.com" && senha === "user123")) {
