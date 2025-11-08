@@ -18,10 +18,10 @@ cd SEMDE
 
 **2. Configure o ambiente**
 
-# Copie o template de variáveis
+Copie o template de variáveis
 cp .env.example .env
 
-# Edite o .env com suas configurações
+Edite o .env com suas configurações
 nano .env  # ou use seu editor favorito
 
 **3. Instale as dependências**
