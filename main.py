@@ -28,6 +28,9 @@ app.add_middleware(
 security = HTTPBearer()
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    """
+    Obtém o usuário atual baseado no token JWT
+    """
     token = credentials.credentials
     payload = verificar_token(token)
     
@@ -52,8 +55,13 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         )
     return user
 
+# ==================== ROTAS DE AUTENTICAÇÃO ====================
+
 @app.post("/registrar", status_code=status.HTTP_201_CREATED)
 def registrar(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+    """
+    Registra um novo usuário no sistema
+    """
     # Verifica se o e-mail já existe
     existente = db.query(Usuario).filter(Usuario.email == usuario.email).first()
     if existente:
@@ -76,6 +84,9 @@ def registrar(usuario: UsuarioCreate, db: Session = Depends(get_db)):
 
 @app.post("/login", response_model=Token)
 def login(usuario: UsuarioLogin, db: Session = Depends(get_db)):
+    """
+    Realiza login e retorna token JWT
+    """
     user = db.query(Usuario).filter(Usuario.email == usuario.email).first()
     
     if not user or not verificar_senha(usuario.senha, user.senha_hash):
@@ -87,36 +98,80 @@ def login(usuario: UsuarioLogin, db: Session = Depends(get_db)):
     token = criar_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
 
+# ==================== ROTAS DE AÇÕES ====================
+
 @app.get("/acoes", response_model=List[AcaoResponse])
-def listar_acoes(db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    acoes = db.query(Acao).filter(Acao.usuario_id == current_user.id).all()
+def listar_acoes(
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Lista todas as ações do usuário logado
+    """
+    acoes = db.query(Acao).filter(Acao.usuario_id == current_user.id).order_by(Acao.data.desc()).all()
     return acoes
 
 @app.post("/acoes", response_model=AcaoResponse)
-def criar_acao(acao: AcaoCreate, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    nova_acao = Acao(
-        titulo=acao.titulo,
-        descricao=acao.descricao,
-        tipo=acao.tipo,
-        data=acao.data or date.today(),
-        cidade=acao.cidade,
-        bairro=acao.bairro,
-        lat=acao.lat,
-        lng=acao.lng,
-        responsavel=acao.responsavel,
-        contato=acao.contato,
-        usuario_id=current_user.id
-    )
-    
-    db.add(nova_acao)
-    db.commit()
-    db.refresh(nova_acao)
-    
-    return nova_acao
+def criar_acao(
+    acao: AcaoCreate, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Cria uma nova ação
+    """
+    try:
+        # Converte a data se for string
+        data_acao = acao.data
+        if isinstance(data_acao, str):
+            try:
+                data_acao = datetime.strptime(acao.data, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Formato de data inválido. Use YYYY-MM-DD"
+                )
+        
+        nova_acao = Acao(
+            titulo=acao.titulo,
+            descricao=acao.descricao,
+            tipo=acao.tipo,
+            data=data_acao,
+            cidade=acao.cidade,
+            bairro=acao.bairro,
+            lat=acao.latitude,  # Mapeia latitude para lat
+            lng=acao.longitude, # Mapeia longitude para lng
+            responsavel=acao.responsavel,
+            contato=acao.contato,
+            usuario_id=current_user.id
+        )
+        
+        db.add(nova_acao)
+        db.commit()
+        db.refresh(nova_acao)
+        
+        return nova_acao
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao criar ação: {str(e)}"
+        )
 
 @app.get("/acoes/{acao_id}", response_model=AcaoResponse)
-def obter_acao(acao_id: int, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    acao = db.query(Acao).filter(Acao.id == acao_id, Acao.usuario_id == current_user.id).first()
+def obter_acao(
+    acao_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Obtém uma ação específica pelo ID
+    """
+    acao = db.query(Acao).filter(
+        Acao.id == acao_id, 
+        Acao.usuario_id == current_user.id
+    ).first()
     
     if not acao:
         raise HTTPException(
@@ -127,8 +182,19 @@ def obter_acao(acao_id: int, db: Session = Depends(get_db), current_user: Usuari
     return acao
 
 @app.put("/acoes/{acao_id}", response_model=AcaoResponse)
-def atualizar_acao(acao_id: int, acao_data: AcaoCreate, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    acao = db.query(Acao).filter(Acao.id == acao_id, Acao.usuario_id == current_user.id).first()
+def atualizar_acao(
+    acao_id: int, 
+    acao_data: AcaoCreate, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Atualiza uma ação existente
+    """
+    acao = db.query(Acao).filter(
+        Acao.id == acao_id, 
+        Acao.usuario_id == current_user.id
+    ).first()
     
     if not acao:
         raise HTTPException(
@@ -136,26 +202,56 @@ def atualizar_acao(acao_id: int, acao_data: AcaoCreate, db: Session = Depends(ge
             detail="Ação não encontrada"
         )
     
-    # Atualizar campos
-    acao.titulo = acao_data.titulo
-    acao.descricao = acao_data.descricao
-    acao.tipo = acao_data.tipo
-    acao.data = acao_data.data or date.today()
-    acao.cidade = acao_data.cidade
-    acao.bairro = acao_data.bairro
-    acao.lat = acao_data.lat
-    acao.lng = acao_data.lng
-    acao.responsavel = acao_data.responsavel
-    acao.contato = acao_data.contato
-    
-    db.commit()
-    db.refresh(acao)
-    
-    return acao
+    try:
+        # Converte a data se for string
+        data_acao = acao_data.data
+        if isinstance(data_acao, str):
+            try:
+                data_acao = datetime.strptime(acao_data.data, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Formato de data inválido. Use YYYY-MM-DD"
+                )
+        
+        # Atualizar campos
+        acao.titulo = acao_data.titulo
+        acao.descricao = acao_data.descricao
+        acao.tipo = acao_data.tipo
+        acao.data = data_acao
+        acao.cidade = acao_data.cidade
+        acao.bairro = acao_data.bairro
+        acao.lat = acao_data.latitude
+        acao.lng = acao_data.longitude
+        acao.responsavel = acao_data.responsavel
+        acao.contato = acao_data.contato
+        acao.atualizado_em = datetime.now()
+        
+        db.commit()
+        db.refresh(acao)
+        
+        return acao
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao atualizar ação: {str(e)}"
+        )
 
 @app.delete("/acoes/{acao_id}")
-def deletar_acao(acao_id: int, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    acao = db.query(Acao).filter(Acao.id == acao_id, Acao.usuario_id == current_user.id).first()
+def deletar_acao(
+    acao_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Deleta uma ação
+    """
+    acao = db.query(Acao).filter(
+        Acao.id == acao_id, 
+        Acao.usuario_id == current_user.id
+    ).first()
     
     if not acao:
         raise HTTPException(
@@ -168,33 +264,51 @@ def deletar_acao(acao_id: int, db: Session = Depends(get_db), current_user: Usua
     
     return {"mensagem": "Ação deletada com sucesso"}
 
+# ==================== ROTAS DE ESTATÍSTICAS E PERFIL ====================
+
 @app.get("/estatisticas", response_model=EstatisticasResponse)
-def obter_estatisticas(db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
-    # Total de ações
-    total_actions = db.query(Acao).filter(Acao.usuario_id == current_user.id).count()
-   
-    # Cidades únicas
-    active_cities = db.query(Acao.cidade).filter(Acao.usuario_id == current_user.id).distinct().count()
-   
-    # Bairros únicos
-    covered_neighborhoods = db.query(Acao.bairro).filter(Acao.usuario_id == current_user.id).distinct().count()
-   
-    # Ações deste mês
-    current_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    monthly_actions = db.query(Acao).filter(
-        Acao.usuario_id == current_user.id,
-        Acao.data >= current_month
-    ).count()
-   
-    return EstatisticasResponse(
-        total_actions=total_actions,
-        active_cities=active_cities,
-        covered_neighborhoods=covered_neighborhoods,
-        monthly_actions=monthly_actions
-    )
+def obter_estatisticas(
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Retorna estatísticas das ações do usuário
+    """
+    try:
+        # Total de ações
+        total_actions = db.query(Acao).filter(Acao.usuario_id == current_user.id).count()
+       
+        # Cidades únicas
+        active_cities = db.query(Acao.cidade).filter(Acao.usuario_id == current_user.id).distinct().count()
+       
+        # Bairros únicos
+        covered_neighborhoods = db.query(Acao.bairro).filter(Acao.usuario_id == current_user.id).distinct().count()
+       
+        # Ações deste mês
+        current_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        monthly_actions = db.query(Acao).filter(
+            Acao.usuario_id == current_user.id,
+            Acao.data >= current_month
+        ).count()
+       
+        return EstatisticasResponse(
+            total_actions=total_actions,
+            active_cities=active_cities,
+            covered_neighborhoods=covered_neighborhoods,
+            monthly_actions=monthly_actions
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao obter estatísticas: {str(e)}"
+        )
 
 @app.get("/perfil")
 def obter_perfil(current_user: Usuario = Depends(get_current_user)):
+    """
+    Retorna informações do perfil do usuário logado
+    """
     return {
         "id": current_user.id,
         "nome": current_user.nome,
@@ -202,12 +316,24 @@ def obter_perfil(current_user: Usuario = Depends(get_current_user)):
         "criado_em": current_user.criado_em
     }
 
+# ==================== ROTAS DE SAÚDE ====================
+
 @app.get("/")
 def root():
-    return {"message": "API do Sistema de Gestão Política"}
+    """
+    Rota raiz
+    """
+    return {
+        "message": "API do Sistema de Gestão Política",
+        "version": "1.0.0",
+        "status": "online"
+    }
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
+    """
+    Verifica a saúde da API e conexão com banco de dados
+    """
     try:
         # Testar conexão com o banco
         db.execute("SELECT 1")
@@ -223,3 +349,9 @@ def health_check(db: Session = Depends(get_db)):
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
+
+# ==================== INICIALIZAÇÃO ====================
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
