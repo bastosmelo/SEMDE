@@ -139,8 +139,8 @@ def criar_acao(
             data=data_acao,
             cidade=acao.cidade,
             bairro=acao.bairro,
-            lat=acao.latitude,  # Mapeia latitude para lat
-            lng=acao.longitude, # Mapeia longitude para lng
+            lat=acao.lat,  # Mapeia latitude para lat
+            lng=acao.lng, # Mapeia longitude para lng
             responsavel=acao.responsavel,
             contato=acao.contato,
             usuario_id=current_user.id
@@ -221,8 +221,8 @@ def atualizar_acao(
         acao.data = data_acao
         acao.cidade = acao_data.cidade
         acao.bairro = acao_data.bairro
-        acao.lat = acao_data.latitude
-        acao.lng = acao_data.longitude
+        acao.lat = acao_data.lat
+        acao.lng = acao_data.lng
         acao.responsavel = acao_data.responsavel
         acao.contato = acao_data.contato
         acao.atualizado_em = datetime.now()
