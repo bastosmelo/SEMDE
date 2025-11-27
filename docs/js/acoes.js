@@ -4,11 +4,11 @@ class ActionsManager {
         // Configuração da API
         this.API_BASE = "http://127.0.0.1:8000";
         this.token = localStorage.getItem("token");
-        
+
         // Botões de exportação (com IDs específicos)
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
-        
+
         this.actions = [];
         this.map = null;
         this.currentMarkers = [];
@@ -144,8 +144,37 @@ class ActionsManager {
                 'Ilha do Príncipe', 'Jucutuquara'
             ]
         };
-        
+
         this.init();
+    }
+
+    formatPhoneNumber(input) {
+        // Remove tudo que não é número
+        let value = input.value.replace(/\D/g, '');
+
+        // Limita a 11 dígitos (máximo para celular brasileiro)
+        value = value.substring(0, 11);
+
+        // Aplica a formatação baseada no tamanho
+        if (value.length <= 10) {
+            // Formato: (XX) XXXX-XXXX para telefones fixos
+            if (value.length > 6) {
+                value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/(\d{2})(\d{0,4})/, '($1) $2');
+            } else if (value.length > 0) {
+                value = value.replace(/(\d{0,2})/, '($1');
+            }
+        } else {
+            // Formato: (XX) XXXXX-XXXX para celulares
+            value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+        }
+
+        // Atualiza o valor do input
+        input.value = value;
+
+        // Move o cursor para o final
+        input.setSelectionRange(value.length, value.length);
     }
 
     // ==================== MÉTODOS DA API ====================
@@ -188,7 +217,7 @@ class ActionsManager {
                 responsavel: action.responsavel,
                 contato: action.contato
             }));
-            
+
             this.nextId = this.actions.length > 0 ? Math.max(...this.actions.map(a => a.id)) + 1 : 1;
             return this.actions;
         } catch (error) {
@@ -200,45 +229,45 @@ class ActionsManager {
     }
 
     // Salvar nova ação no banco
-async saveAction(actionData) {
-    try {
-        console.log('📤 Enviando dados para API:', actionData);
-        
-        const response = await fetch(`${this.API_BASE}/acoes`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${this.token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                titulo: actionData.tipo,
-                descricao: actionData.descricao,
-                tipo: actionData.tipo,
-                data: this.parseDateToAPI(actionData.data),
-                cidade: actionData.cidade,
-                bairro: actionData.bairro,
-                responsavel: actionData.responsavel,
-                contato: actionData.contato
-            })
-        });
+    async saveAction(actionData) {
+        try {
+            console.log('📤 Enviando dados para API:', actionData);
 
-        console.log('📥 Resposta da API - Status:', response.status);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Erro HTTP:', response.status, errorText);
-            throw new Error(`Erro ${response.status}: ${errorText}`);
+            const response = await fetch(`${this.API_BASE}/acoes`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    titulo: actionData.tipo,
+                    descricao: actionData.descricao,
+                    tipo: actionData.tipo,
+                    data: this.parseDateToAPI(actionData.data),
+                    cidade: actionData.cidade,
+                    bairro: actionData.bairro,
+                    responsavel: actionData.responsavel,
+                    contato: actionData.contato
+                })
+            });
+
+            console.log('📥 Resposta da API - Status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Erro HTTP:', response.status, errorText);
+                throw new Error(`Erro ${response.status}: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Ação salva com sucesso:', result);
+            return result;
+
+        } catch (error) {
+            console.error('💥 Erro completo ao salvar ação:', error);
+            throw error;
         }
-
-        const result = await response.json();
-        console.log('✅ Ação salva com sucesso:', result);
-        return result;
-
-    } catch (error) {
-        console.error('💥 Erro completo ao salvar ação:', error);
-        throw error;
     }
-}
 
     // Atualizar ação existente
     async updateActionAPI(actionId, actionData) {
@@ -302,12 +331,12 @@ async saveAction(actionData) {
 
     parseDateToAPI(dateString) {
         if (!dateString || dateString === '-') return null;
-        
+
         if (dateString.includes('/')) {
             const parts = dateString.split('/');
             return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
-        
+
         return dateString;
     }
 
@@ -317,15 +346,15 @@ async saveAction(actionData) {
         const neighborhoods = new Set(this.actions.map(action => action.bairro));
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        
+
         return {
             total_actions: totalActions,
             active_cities: cities.size,
             covered_neighborhoods: neighborhoods.size,
             monthly_actions: this.actions.filter(action => {
                 const actionDate = new Date(this.parseDateToAPI(action.data));
-                return actionDate.getMonth() === currentMonth && 
-                       actionDate.getFullYear() === currentYear;
+                return actionDate.getMonth() === currentMonth &&
+                    actionDate.getFullYear() === currentYear;
             }).length
         };
     }
@@ -378,6 +407,22 @@ async saveAction(actionData) {
             return;
         }
 
+        // Validação do telefone (se preenchido)
+        if (contato && contato.trim() !== '') {
+            // Remove formatação para validar
+            const phoneDigits = contato.replace(/\D/g, '');
+
+            // Verifica se tem pelo menos 10 dígitos (DDD + número)
+            if (phoneDigits.length < 10) {
+                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
+                return;
+            }
+
+            // Mantém o formato bonito para salvar
+            contato = contato.trim();
+        }
+
+
         // Gera coordenadas
         const coords = this.generateCoordinates(cidade, bairro);
 
@@ -410,10 +455,10 @@ async saveAction(actionData) {
         try {
             // Salva no backend
             const savedAction = await this.saveAction(newAction);
-            
+
             // Atualiza com ID real do banco
             newAction.id = savedAction.id;
-            
+
             // Adiciona localmente
             this.actions.unshift(newAction);
 
@@ -424,7 +469,7 @@ async saveAction(actionData) {
             this.closeModal();
 
             this.showNotification('Ação salva com sucesso!', 'success');
-            
+
         } catch (error) {
             this.showNotification('Erro ao salvar ação. Tente novamente.', 'error');
         }
@@ -443,6 +488,18 @@ async saveAction(actionData) {
         if (!cidade || !bairro) {
             alert('Por favor, preencha cidade e bairro');
             return;
+        }
+
+        // Validação do telefone (se preenchido)
+        if (contato && contato.trim() !== '') {
+            const phoneDigits = contato.replace(/\D/g, '');
+
+            if (phoneDigits.length < 10) {
+                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
+                return;
+            }
+
+            contato = contato.trim();
         }
 
         // Formata data
@@ -487,7 +544,7 @@ async saveAction(actionData) {
                 this.renderTable();
                 this.refreshMap();
                 this.closeModal();
-                
+
                 this.showNotification('Ação atualizada com sucesso!', 'success');
             }
         } catch (error) {
@@ -499,13 +556,13 @@ async saveAction(actionData) {
         if (confirm('Excluir esta ação?')) {
             try {
                 await this.deleteActionFromAPI(id);
-                
+
                 // Remove localmente
                 this.actions = this.actions.filter(action => action.id !== id);
                 this.renderTable();
                 await this.updateCounters();
                 this.refreshMap();
-                
+
                 this.showNotification('Ação excluída com sucesso!', 'success');
             } catch (error) {
                 this.showNotification('Erro ao excluir ação. Tente novamente.', 'error');
@@ -516,7 +573,7 @@ async saveAction(actionData) {
     async updateCounters() {
         try {
             const stats = await this.loadStatistics();
-            
+
             document.getElementById('totalActions').textContent = stats.total_actions;
             document.getElementById('activeCities').textContent = stats.active_cities;
             document.getElementById('coveredNeighborhoods').textContent = stats.covered_neighborhoods;
@@ -681,6 +738,15 @@ async saveAction(actionData) {
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('show')) this.closeModal();
         });
+
+        // Formatação automática do telefone
+        const telefoneInput = document.getElementById('contato');
+        if (telefoneInput) {
+            telefoneInput.addEventListener('input', (e) => {
+                this.formatPhoneNumber(e.target);
+            });
+        }
+
     }
 
     setView(view) {
