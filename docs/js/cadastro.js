@@ -101,7 +101,7 @@ class ContactsManager {
             this.handleFormSubmit(e);
         });
 
-        // Formatação de telefone
+        // Formatação de telefone - ADIÇÃO AQUI
         const celularInput = document.getElementById('celular');
         if (celularInput) {
             celularInput.addEventListener('input', (e) => this.formatarTelefone(e.target));
@@ -109,6 +109,7 @@ class ContactsManager {
 
         console.log('Event listeners configurados');
     }
+
 
     setView(view) {
         console.log('Mudando view para:', view);
@@ -417,15 +418,32 @@ class ContactsManager {
     }
 
     formatarTelefone(input) {
+        // Remove tudo que não é número
         let value = input.value.replace(/\D/g, '');
 
+        // Limita a 11 dígitos (máximo para celular brasileiro)
+        value = value.substring(0, 11);
+
+        // Aplica a formatação baseada no tamanho
         if (value.length <= 10) {
-            value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            // Formato: (XX) XXXX-XXXX para telefones fixos
+            if (value.length > 6) {
+                value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/(\d{2})(\d{0,4})/, '($1) $2');
+            } else if (value.length > 0) {
+                value = value.replace(/(\d{0,2})/, '($1');
+            }
         } else {
+            // Formato: (XX) XXXXX-XXXX para celulares
             value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
         }
 
+        // Atualiza o valor do input
         input.value = value;
+
+        // Move o cursor para o final
+        input.setSelectionRange(value.length, value.length);
     }
 
     generateCoordinates(cidade, bairro) {
@@ -483,6 +501,22 @@ class ContactsManager {
             alert('Por favor, preencha o número de celular');
             document.getElementById('celular').focus();
             return;
+        }
+
+        // VALIDAÇÃO DO TELEFONE - ADIÇÃO AQUI
+        if (telefone && telefone.trim() !== '') {
+            // Remove formatação para validar
+            const phoneDigits = telefone.replace(/\D/g, '');
+
+            // Verifica se tem pelo menos 10 dígitos (DDD + número)
+            if (phoneDigits.length < 10) {
+                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
+                document.getElementById('celular').focus();
+                return;
+            }
+
+            // Mantém o formato bonito para salvar
+            telefone = telefone.trim();
         }
 
         if (!cidade || cidade === '') {
@@ -549,19 +583,19 @@ class ContactsManager {
         console.log('Contatos salvos no localStorage');
     }
 
-carregarTabelaContatos() {
-    console.log('Carregando tabela de contatos...');
-    const tbody = document.getElementById('contactsTableBody');
-    if (!tbody) {
-        console.error('Elemento contactsTableBody não encontrado');
-        return;
-    }
+    carregarTabelaContatos() {
+        console.log('Carregando tabela de contatos...');
+        const tbody = document.getElementById('contactsTableBody');
+        if (!tbody) {
+            console.error('Elemento contactsTableBody não encontrado');
+            return;
+        }
 
-    tbody.innerHTML = '';
+        tbody.innerHTML = '';
 
-    this.contatos.forEach(contato => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        this.contatos.forEach(contato => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
             <td>${contato.nome}</td>
             <td>${contato.email}</td>
             <td>${contato.telefone}</td>
@@ -580,30 +614,30 @@ carregarTabelaContatos() {
                 </div>
             </td>
         `;
-        tbody.appendChild(tr);
-    });
+            tbody.appendChild(tr);
+        });
 
-    // Atualiza ícones do Lucide
-    if (window.lucide) {
-        lucide.createIcons();
+        // Atualiza ícones do Lucide
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        console.log('Tabela de contatos carregada');
     }
 
-    console.log('Tabela de contatos carregada');
-}
+    excluirContato(id) {
+        console.log('Excluindo contato:', id);
+        const contato = this.contatos.find(c => c.id === id);
 
-excluirContato(id) {
-    console.log('Excluindo contato:', id);
-    const contato = this.contatos.find(c => c.id === id);
-    
-    if (contato && confirm(`Tem certeza que deseja excluir o contato "${contato.nome}"?`)) {
-        this.contatos = this.contatos.filter(c => c.id !== id);
-        this.salvarContatos();
-        this.carregarTabelaContatos();
-        this.atualizarEstatisticas();
-        this.refreshMap();
-        alert('Contato excluído com sucesso!');
+        if (contato && confirm(`Tem certeza que deseja excluir o contato "${contato.nome}"?`)) {
+            this.contatos = this.contatos.filter(c => c.id !== id);
+            this.salvarContatos();
+            this.carregarTabelaContatos();
+            this.atualizarEstatisticas();
+            this.refreshMap();
+            alert('Contato excluído com sucesso!');
+        }
     }
-}
 
     editarContato(id) {
         console.log('Editando contato:', id);
@@ -671,6 +705,19 @@ excluirContato(id) {
             return;
         }
 
+        // VALIDAÇÃO DO TELEFONE - ADIÇÃO AQUI
+        if (telefone && telefone.trim() !== '') {
+            const phoneDigits = telefone.replace(/\D/g, '');
+
+            if (phoneDigits.length < 10) {
+                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
+                document.getElementById('celular').focus();
+                return;
+            }
+
+            telefone = telefone.trim();
+        }
+        
         if (!cidade || cidade === '') {
             alert('Por favor, selecione um município');
             document.getElementById('municipio').focus();
