@@ -117,7 +117,7 @@
 }
 
 .ia-msg-user {
-  background: var(--chatcordark);
+  background: var(--chatcor);
   color: var(--text);
   align-self: flex-end;
   margin-left: auto;
