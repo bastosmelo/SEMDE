@@ -6,6 +6,7 @@
   --primary-2: #2651df;
   --glass: rgba(255, 255, 255, 0.65);
   --shadow: rgba(20, 20, 40, 0.06);
+  --chatcor: #adcdffa6;
   --accent: #051036;
   --radius: 14px;
   --width: 340px;
@@ -31,6 +32,7 @@
   --card-bg: #071127;
   --sidebar-bg: linear-gradient(180deg, #071127, #071827);
   --menu-hover-bg: rgba(255, 255, 255, 0.04);
+  --chatcor: #7d53b3a6
 }
 
 /* Raiz do widget */
@@ -96,6 +98,7 @@
   flex-direction: column;
   gap: 8px;
   background: var(--page-bg);
+  align-items: center;
 }
 
 /* Mensagens */
@@ -114,7 +117,7 @@
 }
 
 .ia-msg-user {
-  background: var(--glass);
+  background: var(--chatcor);
   color: var(--text);
   align-self: flex-end;
   margin-left: auto;

@@ -444,7 +444,7 @@ function fallbackResponder(text) {
     showOptions(matches.slice(0, 5));
   });
 
-  addSystemNote("Lembrete: bote um nome para ele tá? esqueça nn viu");
+  addSystemNote("Versão de assistente: 0.0.5");
 
   // Saudação inicial (sem mascote falando)
   function addInitialMessage(text) {
