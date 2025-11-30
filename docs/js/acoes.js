@@ -2,7 +2,7 @@
 class ActionsManager {
     constructor() {
         // Configuração da API
-        this.API_BASE = "http://127.0.0.1:8000";
+        this.API_BASE = "http://localhost:8000";
         this.token = localStorage.getItem("token");
 
         // Botões de exportação (com IDs específicos)
@@ -335,9 +335,12 @@ class ActionsManager {
         return demo;
     }
 
-    // ==================== MÉTODOS PRINCIPAIS ATUALIZADOS ====================
+    // ==================== MÉTODOS PRINCIPAIS CORRIGIDOS ====================
 
     async init() {
+        // Testa a conexão com a API primeiro
+        await this.testAPIConnection();
+        
         await this.loadActions();
         this.initMap();
         this.initCityFilter();
@@ -351,13 +354,13 @@ class ActionsManager {
         e.preventDefault();
         const form = e.target;
 
-        const cidade = form.cidade.value || '-';
-        const bairro = form.bairro.value || '-';
-        const tipo = form.tipoAcao.value || '-';
-        const data = form.dataAcao.value;
-        const descricao = form.descricao.value || '';
-        const responsavel = form.responsavel.value || '';
-        const contato = form.contato.value || '';
+        let cidade = form.cidade.value || '-';
+        let bairro = form.bairro.value || '-';
+        let tipo = form.tipoAcao.value || '-';
+        let data = form.dataAcao.value;
+        let descricao = form.descricao.value || '';
+        let responsavel = form.responsavel.value || '';
+        let contato = form.contato.value || '';
 
         // Validação
         if (!cidade || cidade === '' || cidade === 'Selecione uma cidade') {
@@ -384,7 +387,6 @@ class ActionsManager {
             // Mantém o formato bonito para salvar
             contato = contato.trim();
         }
-
 
         // Gera coordenadas
         const coords = this.generateCoordinates(cidade, bairro);
@@ -434,18 +436,19 @@ class ActionsManager {
             this.showNotification('Ação salva com sucesso!', 'success');
 
         } catch (error) {
+            console.error('Erro ao salvar ação:', error);
             this.showNotification('Erro ao salvar ação. Tente novamente.', 'error');
         }
     }
 
     async updateAction(id, form) {
-        const cidade = form.cidade.value || '-';
-        const bairro = form.bairro.value || '-';
-        const tipo = form.tipoAcao.value || '-';
-        const data = form.dataAcao.value;
-        const descricao = form.descricao.value || '';
-        const responsavel = form.responsavel.value || '';
-        const contato = form.contato.value || '';
+        let cidade = form.cidade.value || '-';
+        let bairro = form.bairro.value || '-';
+        let tipo = form.tipoAcao.value || '-';
+        let data = form.dataAcao.value;
+        let descricao = form.descricao.value || '';
+        let responsavel = form.responsavel.value || '';
+        let contato = form.contato.value || '';
 
         // Validação
         if (!cidade || !bairro) {
@@ -511,6 +514,7 @@ class ActionsManager {
                 this.showNotification('Ação atualizada com sucesso!', 'success');
             }
         } catch (error) {
+            console.error('Erro ao atualizar ação:', error);
             this.showNotification('Erro ao atualizar ação. Tente novamente.', 'error');
         }
     }
@@ -528,6 +532,7 @@ class ActionsManager {
 
                 this.showNotification('Ação excluída com sucesso!', 'success');
             } catch (error) {
+                console.error('Erro ao excluir ação:', error);
                 this.showNotification('Erro ao excluir ação. Tente novamente.', 'error');
             }
         }
@@ -548,6 +553,33 @@ class ActionsManager {
             document.getElementById('activeCities').textContent = stats.active_cities;
             document.getElementById('coveredNeighborhoods').textContent = stats.covered_neighborhoods;
             document.getElementById('monthActions').textContent = stats.monthly_actions;
+        }
+    }
+
+    // ==================== MÉTODO DE DEBUG ADICIONADO ====================
+
+    async testAPIConnection() {
+        try {
+            console.log('🔍 Testando conexão com API...');
+            console.log('Token:', this.token ? 'Presente' : 'Ausente');
+            console.log('API Base:', this.API_BASE);
+            
+            const response = await fetch(`${this.API_BASE}/acoes`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            console.log('Status da API:', response.status);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ API conectada - Dados recebidos:', data);
+            } else {
+                console.error('❌ Erro na API:', response.status);
+            }
+        } catch (error) {
+            console.error('💥 Falha na conexão com API:', error);
         }
     }
 
