@@ -9,9 +9,18 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List
 from sqlalchemy import func
 from datetime import datetime, date
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Criar tabelas
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("✅ Tabelas criadas/verificadas com sucesso!")
+except Exception as e:
+    logger.error(f"❌ Erro ao criar tabelas: {e}")
 
 app = FastAPI(title="Sistema de Gestão Política")
 
@@ -139,8 +148,8 @@ def criar_acao(
             data=data_acao,
             cidade=acao.cidade,
             bairro=acao.bairro,
-            lat=acao.lat,  # Mapeia latitude para lat
-            lng=acao.lng, # Mapeia longitude para lng
+            lat=acao.lat,
+            lng=acao.lng,
             responsavel=acao.responsavel,
             contato=acao.contato,
             usuario_id=current_user.id
@@ -328,6 +337,7 @@ def criar_contato(
         raise
     except Exception as e:
         db.rollback()
+        logger.error(f"Erro ao criar contato: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao criar contato: {str(e)}"
@@ -418,6 +428,7 @@ def atualizar_contato(
         raise
     except Exception as e:
         db.rollback()
+        logger.error(f"Erro ao atualizar contato: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao atualizar contato: {str(e)}"
@@ -483,6 +494,7 @@ def obter_estatisticas(
         )
         
     except Exception as e:
+        logger.error(f"Erro ao obter estatísticas: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao obter estatísticas: {str(e)}"
@@ -523,6 +535,7 @@ def obter_estatisticas_contatos(
         }
         
     except Exception as e:
+        logger.error(f"Erro ao obter estatísticas de contatos: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao obter estatísticas de contatos: {str(e)}"
@@ -569,6 +582,7 @@ def health_check(db: Session = Depends(get_db)):
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
+        logger.error(f"Erro no health check: {e}")
         return {
             "status": "unhealthy",
             "database": "disconnected",
@@ -580,4 +594,8 @@ def health_check(db: Session = Depends(get_db)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("🚀 Iniciando servidor FastAPI...")
+    print("📍 http://localhost:8000")
+    print("📚 Documentação: http://localhost:8000/docs")
+    print("❤️  Health Check: http://localhost:8000/health")
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

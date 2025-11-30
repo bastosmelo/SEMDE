@@ -20,6 +20,10 @@ class ContactsManager {
 
     async makeApiCall(endpoint, options = {}) {
         try {
+            console.log(`🔍 Fazendo requisição para: ${this.API_BASE}${endpoint}`);
+            console.log(`📦 Método: ${options.method || 'GET'}`);
+            console.log(`🔑 Token presente: ${this.token ? 'Sim' : 'Não'}`);
+
             const response = await fetch(`${this.API_BASE}${endpoint}`, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
@@ -29,13 +33,20 @@ class ContactsManager {
                 ...options
             });
 
+            console.log(`📥 Resposta - Status: ${response.status}`);
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error(`❌ Erro HTTP ${response.status}:`, errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
 
-            return await response.json();
+            const data = await response.json();
+            console.log(`✅ Resposta recebida:`, data);
+            return data;
+            
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('💥 API Error:', error);
             throw error;
         }
     }
@@ -43,7 +54,7 @@ class ContactsManager {
     // Buscar contatos do banco
     async loadContacts() {
         try {
-            const data = await this.makeApiCall('/estatiticas-contatos');
+            const data = await this.makeApiCall('/contatos');
             this.contatos = data.map(contato => ({
                 id: contato.id,
                 nome: contato.nome,
@@ -86,7 +97,7 @@ class ContactsManager {
                 },
                 body: JSON.stringify({
                     nome: contactData.nome,
-                    idade: contactData.idade,
+                    idade: contactData.idade ? parseInt(contactData.idade) : null,
                     sexo: contactData.sexo,
                     email: contactData.email,
                     telefone: contactData.telefone,
@@ -97,7 +108,7 @@ class ContactsManager {
                     assunto: contactData.assunto,
                     observacao: contactData.observacao,
                     status: contactData.status,
-                    data_cadastro: this.parseDateToAPI(contactData.dataCadastro),
+                    data_cadastro: contactData.dataCadastro || new Date().toISOString().split('T')[0],
                     lat: contactData.lat,
                     lng: contactData.lng
                 })
@@ -277,6 +288,13 @@ class ContactsManager {
     // ==================== MÉTODOS PRINCIPAIS CORRIGIDOS ====================
 
     async init() {
+        // Verifica se o token existe
+        if (!this.token) {
+            console.error('❌ Token não encontrado');
+            this.showNotification('Erro de autenticação. Faça login novamente.', 'error');
+            window.location.href = 'index.html';
+            return;
+        }
         // Testa a conexão com a API primeiro
         await this.testAPIConnection();
         
