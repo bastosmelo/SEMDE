@@ -22,7 +22,21 @@ try:
 except Exception as e:
     logger.error(f"❌ Erro ao criar tabelas: {e}")
 
-app = FastAPI(title="Sistema de Gestão Política")
+# Configuração do esquema de segurança para Swagger
+security_scheme = HTTPBearer(
+    bearerFormat="JWT",
+    description="Insira o token JWT no formato: Bearer <token>"
+)
+
+app = FastAPI(
+    title="Sistema de Gestão Política",
+    description="API para gerenciamento de contatos e ações políticas",
+    version="1.0.0",
+    swagger_ui_parameters={
+        "persistAuthorization": True,
+        "displayRequestDuration": True
+    }
+)
 
 # CORS
 app.add_middleware(
@@ -590,6 +604,43 @@ def health_check(db: Session = Depends(get_db)):
             "timestamp": datetime.now().isoformat()
         }
 
+# ==================== ROTA PARA CRIAR USUÁRIO INICIAL ====================
+
+@app.post("/criar-usuario-inicial")
+def criar_usuario_inicial(db: Session = Depends(get_db)):
+    """
+    Cria um usuário inicial para testes
+    """
+    try:
+        # Verificar se já existe
+        existente = db.query(Usuario).filter(Usuario.email == "admin@exemplo.com").first()
+        if existente:
+            return {"mensagem": "Usuário já existe", "email": "admin@exemplo.com"}
+        
+        novo_usuario = Usuario(
+            email="admin@exemplo.com",
+            senha_hash=gerar_hash("123456"),
+            nome="Administrador"
+        )
+        
+        db.add(novo_usuario)
+        db.commit()
+        db.refresh(novo_usuario)
+        
+        return {
+            "mensagem": "Usuário criado com sucesso", 
+            "email": "admin@exemplo.com", 
+            "senha": "123456",
+            "dica": "Use estas credenciais para fazer login"
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao criar usuário: {str(e)}"
+        )
+
 # ==================== INICIALIZAÇÃO ====================
 
 if __name__ == "__main__":
@@ -598,4 +649,5 @@ if __name__ == "__main__":
     print("📍 http://localhost:8000")
     print("📚 Documentação: http://localhost:8000/docs")
     print("❤️  Health Check: http://localhost:8000/health")
+    print("👤 Criar usuário inicial: http://localhost:8000/criar-usuario-inicial")
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
