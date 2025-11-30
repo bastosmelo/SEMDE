@@ -313,18 +313,6 @@ class ActionsManager {
         };
     }
 
-    loadInitialData() {
-        return [
-            { id: 1, cidade: 'Lagarto', bairro: 'Centro', tipo: 'Reunião com lideranças', data: '22/07/2025', lat: -10.9263, lng: -37.0785 },
-            { id: 2, cidade: 'Aracaju', bairro: 'Grageru', tipo: 'Evento', data: '22/07/2025', lat: -10.9189, lng: -37.0627 },
-            { id: 3, cidade: 'Estância', bairro: 'Centro', tipo: 'Panfletagem', data: '20/07/2025', lat: -11.2619, lng: -37.4381 },
-            { id: 4, cidade: 'Itabaiana', bairro: 'São Cristóvão', tipo: 'Visita Técnica', data: '18/07/2025', lat: -10.6850, lng: -37.4250 },
-            { id: 5, cidade: 'Aracaju', bairro: '13 de Julho', tipo: 'Caminhada', data: '15/07/2025', lat: -10.9111, lng: -37.0522 },
-            { id: 6, cidade: 'Lagarto', bairro: 'Jardins', tipo: 'Reunião com lideranças', data: '12/07/2025', lat: -10.9300, lng: -37.0850 },
-            { id: 7, cidade: 'Aracaju', bairro: 'Luzia', tipo: 'Evento', data: '10/07/2025', lat: -10.9350, lng: -37.0750 },
-            { id: 8, cidade: 'Estância', bairro: 'São José', tipo: 'Panfletagem', data: '08/07/2025', lat: -11.2550, lng: -37.4450 }
-        ];
-    }
 
     // ==================== MÉTODOS PRINCIPAIS ATUALIZADOS ====================
 
