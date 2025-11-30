@@ -19,130 +19,84 @@ class ActionsManager {
         // Sistema de posições personalizadas
         this.customPositions = this.loadCustomPositions();
 
-        // Dados de cidades e bairros
+        /* ---------- CIDADES E BAIRROS (COMPLETOS – SERGIPE) ---------- */
         this.cidadesBairros = {
-            'Aracaju': [
-                'Centro', '13 de Julho', 'Atalaia', 'Coroa do Meio', 'São José',
-                'Grageru', 'Jardins', 'Inácio Barbosa', 'Luzia', 'Salgado Filho',
-                'Siqueira Campos', 'Getúlio Vargas', 'Suíssa', 'Jardim Centenário',
-                'Santa Maria', 'Soledade', 'Porto Dantas', 'Industrial'
-            ],
-            'São Paulo': [
-                'Centro', 'Moema', 'Pinheiros', 'Vila Madalena', 'Itaim Bibi',
-                'Jardins', 'Morumbi', 'Brooklin', 'Campo Belo', 'Consolação',
-                'Bela Vista', 'Liberdade', 'Paraíso', 'Vila Mariana', 'Tatuapé',
-                'Mooca', 'Ipiranga', 'Santo Amaro', 'Butantã', 'Perdizes'
-            ],
-            'Rio de Janeiro': [
-                'Copacabana', 'Ipanema', 'Leblon', 'Barra da Tijuca', 'Botafogo',
-                'Flamengo', 'Laranjeiras', 'Tijuca', 'Maracanã', 'Centro',
-                'Santa Teresa', 'Lagoa', 'Urca', 'Recreio', 'Jardim Botânico',
-                'Gávea', 'Catete', 'Cosme Velho', 'Humaitá', 'Jacarepaguá'
-            ],
-            'Salvador': [
-                'Barra', 'Ondina', 'Rio Vermelho', 'Pituba', 'Itaigara',
-                'Brotas', 'Graça', 'Vitória', 'Campo Grande', 'Comércio',
-                'Pelourinho', 'Stella Maris', 'Piatã', 'Amaralina', 'Pernambués',
-                'Cajazeiras', 'Liberdade', 'Cabula', 'Pau da Lima', 'São Caetano'
-            ],
-            'Belo Horizonte': [
-                'Centro', 'Savassi', 'Lourdes', 'Funcionários', 'Sion',
-                'Belo Horizonte', 'Cidade Jardim', 'Mangabeiras', 'Santa Efigênia',
-                'Lagoinha', 'Santa Tereza', 'Floresta', 'Barro Preto', 'Nova Suíça',
-                'Anchieta', 'Carmo', 'Coração Eucarístico', 'Gutierrez', 'Pampulha'
-            ],
-            'Fortaleza': [
-                'Centro', 'Meireles', 'Aldeota', 'Praia de Iracema', 'Varjota',
-                'Mucuripe', 'Cocó', 'Papicu', 'Dionísio Torres', 'Joaquim Távora',
-                'Benfica', 'Fátima', 'Montese', 'Parquelândia', 'Vila Velha',
-                'São Gerardo', 'Jardim América', 'Álvaro Weyne', 'Damas'
-            ],
-            'Brasília': [
-                'Asa Sul', 'Asa Norte', 'Sudoeste', 'Noroeste', 'Lago Sul',
-                'Lago Norte', 'Guará', 'Taguatinga', 'Cruzeiro', 'SIA',
-                'Vila Planalto', 'Octogonal', 'Park Way', 'Jardim Botânico',
-                'Candangolândia', 'Riacho Fundo', 'Águas Claras', 'Samambaia'
-            ],
-            'Recife': [
-                'Boa Viagem', 'Boa Vista', 'Casa Forte', 'Espinheiro', 'Graças',
-                'Ilha do Leite', 'Parnamirim', 'Pina', 'Poço da Panela', 'Santana',
-                'Santo Amaro', 'Setúbal', 'Soledade', 'Torre', 'Várzea',
-                'Zumbi do Pacheco', 'Cordeiro', 'Madalena', 'Torrões'
-            ],
-            'Porto Alegre': [
-                'Centro Histórico', 'Moinhos de Vento', 'Bela Vista', 'Petrópolis',
-                'Bom Fim', 'Cidade Baixa', 'Floresta', 'Independência', 'Jardim Botânico',
-                'Partenon', 'Santana', 'Santa Cecília', 'Santa Maria Goretti', 'Tristeza',
-                'Vila Assunção', 'Vila Conceição', 'Vila Ipiranga', 'Vila João Pessoa'
-            ],
-            'Curitiba': [
-                'Centro', 'Batel', 'Bigorrilho', 'Cabral', 'Cristo Rei',
-                'Água Verde', 'Jardim Social', 'Mercês', 'Portão', 'Santa Felicidade',
-                'Vila Izabel', 'Bom Retiro', 'Cajuru', 'Campo Comprido', 'Fanny',
-                'Novo Mundo', 'Orleans', 'Parolin', 'Prado Velho', 'Rebouças'
-            ],
-            'Manaus': [
-                'Centro', 'Adrianópolis', 'Chapada', 'Crespo', 'Educandos',
-                'Flores', 'Nossa Sra. das Graças', 'Parque 10 de Novembro', 'São Geraldo',
-                'Aleixo', 'Coroado', 'Dom Pedro', 'Japiim', 'Morro da Liberdade',
-                'Nova Esperança', 'Ponta Negra', 'Raiz', 'Santo Antônio', 'Tarumã'
-            ],
-            'Belém': [
-                'Centro', 'Batista Campos', 'Campina', 'Cidade Velha', 'Cremação',
-                'Marco', 'Nazaré', 'Reduto', 'São Brás', 'Umarizal',
-                'Condor', 'Guamá', 'Jurunas', 'Pedreira', 'Sacramenta',
-                'Souza', 'Telégrafo', 'Una', 'Val-de-Cães'
-            ],
-            'Goiânia': [
-                'Centro', 'Setor Bueno', 'Setor Marista', 'Setor Oeste', 'Jardim Goiás',
-                'Campinas', 'Setor Aeroporto', 'Setor Coimbra', 'Setor Faiçalville',
-                'Setor Garavelo', 'Setor Jaó', 'Setor Jardim América', 'Setor Jundiaí',
-                'Setor Lisboa', 'Setor Pedro Ludovico', 'Setor Sul', 'Setor Urias Magalhães'
-            ],
-            'Campinas': [
-                'Centro', 'Cambuí', 'Taquaral', 'Bonfim', 'Guanabara',
-                'Jardim Chapadão', 'Jardim Guanabara', 'Jardim São Paulo', 'Nova Campinas',
-                'Parque Industrial', 'Ponte Preta', 'Proença', 'Swift', 'Vila Andrade Neves',
-                'Vila Costa e Silva', 'Vila Lemos', 'Vila Marieta', 'Vila Teixeira'
-            ],
-            'São Luís': [
-                'Centro', 'Areinha', 'Bequimão', 'Camboa', 'Centro Histórico',
-                'Coréia', 'Fabril', 'Jardim Renascença', 'Jardim São Cristóvão',
-                'Monte Castelo', 'Parque Amazonas', 'Parque Pindorama', 'Parque Sabiá',
-                'Pedrinhas', 'Ponta D Areia', 'Ponta do Farol', 'Vila Bacanga'
-            ],
-            'Maceió': [
-                'Centro', 'Jatiúca', 'Ponta Verde', 'Mangabeiras', 'Pajuçara',
-                'Cruz das Almas', 'Gruta de Lourdes', 'Farol', 'Levada', 'Pinheiro',
-                'Poço', 'Benedito Bentes', 'Garça Torta', 'Guaxuma', 'Ipioca',
-                'Jacarecica', 'Jardim Petrópolis', 'Petrópolis'
-            ],
-            'Natal': [
-                'Centro', 'Ponta Negra', 'Lagoa Nova', 'Capim Macio', 'Candelária',
-                'Cidade Alta', 'Dix-Sept Rosado', 'Lagoa Seca', 'Mãe Luiza',
-                'Neópolis', 'Nova Descoberta', 'Petrópolis', 'Rocas', 'Tirol',
-                'Alecrim', 'Areia Preta', 'Barro Vermelho', 'Quintas'
-            ],
-            'João Pessoa': [
-                'Centro', 'Bessa', 'Cabedelo', 'Manaíra', 'Tambau',
-                'Altiplano', 'Bancários', 'Cabo Branco', 'Cristo Redentor',
-                'Expedicionários', 'Jardim Cidade Universitária', 'Jardim São Paulo',
-                'José Américo', 'Padre Zé', 'Planalto da Boa Esperança', 'Tambaú',
-                'Treze de Maio', 'Varadouro'
-            ],
-            'Florianópolis': [
-                'Centro', 'Agronômica', 'Carianos', 'Carianos', 'Córrego Grande',
-                'Coqueiros', 'Estreito', 'Itacorubi', 'Jardim Atlântico',
-                'Lagoa da Conceição', 'Pantanal', 'Rio Tavares', 'Saco Grande',
-                'Saco dos Limões', 'Santa Mônica', 'Trindade', 'Vargem Grande'
-            ],
-            'Vitória': [
-                'Centro', 'Jardim Camburi', 'Jardim da Penha', 'Maria Ortiz',
-                'Mata da Praia', 'Praia do Canto', 'República', 'Santa Lúcia',
-                'Santos Dumont', 'São Pedro', 'Vila Velha', 'Bento Ferreira',
-                'Consolação', 'Enseada do Suá', 'Forte São João', 'Ilha do Frade',
-                'Ilha do Príncipe', 'Jucutuquara'
-            ]
+            'Amparo de São Francisco': ['Centro', 'Lagoa do Pau', 'Povoado Canafístula', 'Zona Rural'],
+            'Aquidabã': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Aracaju': ['13 de Julho', 'Atalaia', 'Aruana', 'Coroa do Meio', 'Farolândia', 'Getúlio Vargas', 'Grageru', 'Inácio Barbosa', 'Industrial', 'Jabotiana', 'Jardins', 'Luzia', 'Ponto Novo', 'Porto Dantas', 'Salgado Filho', 'Santa Maria', 'Santos Dumont', 'São José', 'Siqueira Campos', 'Soledade', 'Suíssa', 'Zona de Expansão'],
+            'Arauá': ['Centro', 'Povoado Saco', 'Zona Rural'],
+            'Areia Branca': ['Centro', 'Povoado Mato', 'Zona Rural'],
+            'Barra dos Coqueiros': ['Centro', 'Povoado Mosqueiro', 'Zona Rural'],
+            'Boquim': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Brejo Grande': ['Centro', 'Povoado Abaeté', 'Zona Rural'],
+            'Campo do Brito': ['Centro', 'Povoado Gameleira', 'Zona Rural'],
+            'Canhoba': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Canindé de São Francisco': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Capela': ['Centro', 'Povoado Gameleira', 'Zona Rural'],
+            'Carira': ['Centro', 'Povoado Olho D\'Água', 'Zona Rural'],
+            'Carmópolis': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Cedro de São João': ['Centro', 'Povoado Saco', 'Zona Rural'],
+            'Cristinápolis': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Cumbe': ['Centro', 'Povoado Barro Preto', 'Zona Rural'],
+            'Divina Pastora': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Estância': ['Centro', 'Abaeté', 'Zona Rural'],
+            'Feira Nova': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Frei Paulo': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Gararu': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'General Maynard': ['Centro', 'Povoado Mato', 'Zona Rural'],
+            'Gracho Cardoso': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Ilha das Flores': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Indiaroba': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Itabaiana': ['Centro', 'Alto da Boa Vista', 'Jardim Petrópolis', 'São José', 'Vila Lobo', 'Zona Rural'],
+            'Itabaianinha': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Itabi': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Itaporanga d\'Ajuda': ['Centro', 'Povoado Barro Preto', 'Zona Rural'],
+            'Japaratuba': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Japoatã': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Lagarto': ['Centro', 'Alto da Boa Vista', 'Campo Limpo', 'Jardim Alvorada', 'Nossa Senhora da Penha', 'São João', 'Vila Nova', 'Zona Rural'],
+            'Laranjeiras': ['Centro', 'Povoado Olho D\'Água', 'Zona Rural'],
+            'Macambira': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Malhada dos Bois': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Malhador': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Maruim': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Moita Bonita': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Monte Alegre de Sergipe': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Muribeca': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Neópolis': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Nossa Senhora Aparecida': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Nossa Senhora da Glória': ['Centro', 'Povoado Olho D\'Água', 'Zona Rural'],
+            'Nossa Senhora das Dores': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Nossa Senhora de Lourdes': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Nossa Senhora do Socorro': ['Centro', 'Fidalgo', 'Parque de Socorro', 'Ponte do Imperador', 'Santo Antônio', 'Zona Rural'],
+            'Pacatuba': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Pedra Mole': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Pedrinhas': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Pinhão': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Pirambu': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Poço Redondo': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Poço Verde': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Porto da Folha': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Propriá': ['Centro', 'Povoado Mucambo', 'Zona Portuária', 'Zona Rural'],
+            'Riachão do Dantas': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Riachuelo': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Ribeirópolis': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Rosário do Catete': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Salgado': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Santa Luzia do Itanhy': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Santa Rosa de Lima': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Santana do São Francisco': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Santo Amaro das Brotas': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'São Cristóvão': ['Centro Histórico', 'Comprida', 'Praia', 'Santo Antônio', 'Zona Rural'],
+            'São Domingos': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'São Francisco': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'São José da Tapera': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'São Miguel do Aleixo': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Simão Dias': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Siriri': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Telha': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
+            'Tobias Barreto': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Tomar do Geru': ['Centro', 'Povoado Riacho', 'Zona Rural'],
+            'Umbaúba': ['Centro', 'Povoado Riacho', 'Zona Rural']
         };
 
         this.init();
@@ -1300,7 +1254,7 @@ class ActionsManager {
             'Salgado': { lat: -11.1500, lng: -37.7500 },
             'Santa Luzia do Itanhy': { lat: -11.3500, lng: -37.4000 },
             'Santa Rosa de Lima': { lat: -10.7833, lng: -37.0333 },
-            'Santana do São Francisco': { lat: -10.2833, -36.7833 },
+            'Santana do São Francisco': { lat: -10.2833, lng: -36.7833 },
             'Santo Amaro das Brotas': { lat: -10.7667, lng: -37.2167 },
             'Simão Dias': { lat: -10.6833, lng: -37.8167 },
             'Siriri': { lat: -11.3167, lng: -37.3667 },

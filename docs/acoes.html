@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ações • Dashboard</title>
 
   <!-- Fonte -->
@@ -12,15 +12,10 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <link rel="stylesheet" href="css/acoes.css">
-
   <!-- Lucide icons -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.278.0/dist/lucide.min.js" defer></script>
 
-  <!-- Bibliotecas para exportação -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="css/acoes.css">
 
 </head>
 
@@ -124,85 +119,104 @@
               <button id="exportExcel" class="btn btn-outline"><i data-lucide="file"></i> Excel</button>
             </div>
           </div>
-
-  <!-- Modal Nova Ação -->
-  <div id="modalNovaAcao" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-content panel">
-      <div class="modal-header">
-        <h2 id="modalTitle">Nova Ação</h2>
-        <span class="close" id="closeModal" title="Fechar">&#10005;</span>
-      </div>
-
-      <form id="formNovaAcao" class="modal-form" autocomplete="off">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="cidade">Cidade *</label>
-            <select id="cidade" name="cidade" required>
-              <option value="">Selecione uma cidade</option>
-              <!-- As opções serão preenchidas automaticamente pelo JavaScript -->
-            </select>
+          <div class="table-container">
+            <table class="actions-table" aria-describedby="tableDesc">
+              <thead>
+                <tr>
+                  <th>Cidade</th>
+                  <th>Bairro</th>
+                  <th>Tipo da ação</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="acoesTbody">
+              </tbody>
+            </table>
           </div>
-          <div class="form-group">
-            <label for="bairro">Bairro *</label>
-            <select id="bairro" name="bairro" required>
-              <option value="">Selecione um bairro</option>
-              <!-- Os bairros serão preenchidos conforme a cidade selecionada -->
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tipoAcao">Tipo da Ação *</label>
-            <select id="tipoAcao" name="tipoAcao" required>
-              <option value="">Selecione o tipo</option>
-              <option>Reunião com lideranças</option>
-              <option>Evento</option>
-              <option>Visita Técnica</option>
-              <option>Caminhada</option>
-              <option>Panfletagem</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="dataAcao">Data da Ação *</label>
-            <input type="date" id="dataAcao" name="dataAcao" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label for="descricao">Descrição</label>
-            <textarea id="descricao" name="descricao" rows="3" placeholder="Descreva os detalhes..."></textarea>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="responsavel">Responsável</label>
-            <input type="text" id="responsavel" name="responsavel" placeholder="Nome do responsável">
-          </div>
-          <div class="form-group">
-            <label for="contato">Contato</label>
-            <input type="tel" id="contato" name="contato" placeholder="(79) 99999-9999">
-          </div>
-        </div>
-
-        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px">
-          <button type="button" id="btnCancelar" class="btn btn-outline">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Ação</button>
-        </div>
-      </form>
-    </div>
+        </section>
+      </main>
+    </section>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Heatmap plugin -->
-  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+        <!-- Modal Nova Ação -->
+          <div id="modalNovaAcao" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-content panel">
+              <div class="modal-header">
+                <h2 id="modalTitle">Nova Ação</h2>
+                <span class="close" id="closeModal" title="Fechar">&#10005;</span>
+              </div>
 
-  <script src="js/acoes.js"></script>
+              <form id="formNovaAcao" class="modal-form" autocomplete="off">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="cidade">Cidade *</label>
+                    <select id="cidade" name="cidade" required>
+                      <option value="">Selecione uma cidade</option>
+                      <!-- As opções serão preenchidas automaticamente pelo JavaScript -->
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="bairro">Bairro *</label>
+                    <select id="bairro" name="bairro" required>
+                      <option value="">Selecione um bairro</option>
+                      <!-- Os bairros serão preenchidos conforme a cidade selecionada -->
+                    </select>
+                  </div>
+                </div>
 
-  <script src="ia/ia-loader.js"></script>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="tipoAcao">Tipo da Ação *</label>
+                    <select id="tipoAcao" name="tipoAcao" required>
+                      <option value="">Selecione o tipo</option>
+                      <option>Reunião com lideranças</option>
+                      <option>Evento</option>
+                      <option>Visita Técnica</option>
+                      <option>Caminhada</option>
+                      <option>Panfletagem</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="dataAcao">Data da Ação *</label>
+                    <input type="date" id="dataAcao" name="dataAcao" required>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" name="descricao" rows="3" placeholder="Descreva os detalhes..."></textarea>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="responsavel">Responsável</label>
+                    <input type="text" id="responsavel" name="responsavel" placeholder="Nome do responsável">
+                  </div>
+                  <div class="form-group">
+                    <label for="contato">Contato</label>
+                    <input type="tel" id="contato" name="contato" placeholder="(79) 99999-9999">
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px">
+                  <button type="button" id="btnCancelar" class="btn btn-outline">Cancelar</button>
+                  <button type="submit" class="btn btn-primary">Salvar Ação</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Leaflet JS -->
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <!-- Heatmap plugin -->
+          <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+          <script src="js/acoes.js"></script>
+
+          <script src="ia/ia-loader.js"></script>
 
 </body>
 
