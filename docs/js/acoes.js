@@ -23,7 +23,7 @@ class ActionsManager {
         this.cidadesBairros = {
             'Amparo de São Francisco': ['Centro', 'Lagoa do Pau', 'Povoado Canafístula', 'Zona Rural'],
             'Aquidabã': ['Centro', 'Povoado Lagoa', 'Zona Rural'],
-            'Aracaju': ['13 de Julho', 'Atalaia', 'Aruana', 'Coroa do Meio', 'Farolândia', 'Getúlio Vargas', 'Grageru', 'Inácio Barbosa', 'Industrial', 'Jabotiana', 'Jardins', 'Luzia', 'Ponto Novo', 'Porto Dantas', 'Salgado Filho', 'Santa Maria', 'Santos Dumont', 'São José', 'Siqueira Campos', 'Soledade', 'Suíssa', 'Zona de Expansão'],
+            'Aracaju': ['13 de Julho', 'Atalaia', 'Aruana', 'Centro', 'Coroa do Meio', 'Farolândia', 'Getúlio Vargas', 'Grageru', 'Inácio Barbosa', 'Industrial', 'Jabotiana', 'Jardins', 'Luzia', 'Ponto Novo', 'Porto Dantas', 'Salgado Filho', 'Santa Maria', 'Santos Dumont', 'São José', 'Siqueira Campos', 'Soledade', 'Suíssa', 'Zona de Expansão'],
             'Arauá': ['Centro', 'Povoado Saco', 'Zona Rural'],
             'Areia Branca': ['Centro', 'Povoado Mato', 'Zona Rural'],
             'Barra dos Coqueiros': ['Centro', 'Povoado Mosqueiro', 'Zona Rural'],
