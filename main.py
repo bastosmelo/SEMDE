@@ -650,4 +650,10 @@ if __name__ == "__main__":
     print("📚 Documentação: http://localhost:8000/docs")
     print("❤️  Health Check: http://localhost:8000/health")
     print("👤 Criar usuário inicial: http://localhost:8000/criar-usuario-inicial")
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    
+    try:
+        uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    except Exception as e:
+        print(f"❌ Erro ao iniciar servidor: {e}")
+        print("💡 Verifique se a porta 8000 está disponível")
+        input("Pressione Enter para sair...")
