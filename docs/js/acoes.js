@@ -313,6 +313,27 @@ class ActionsManager {
         };
     }
 
+    loadInitialData() {
+        // Dados demo usados como fallback quando a API não responde
+        const demo = [
+            {
+                id: 1,
+                cidade: 'Aracaju',
+                bairro: 'Centro',
+                tipo: 'Mutirão de limpeza',
+                data: this.formatDate(new Date().toISOString()),
+                lat: -10.9111,
+                lng: -37.0717,
+                descricao: 'Ação demo em Aracaju',
+                responsavel: 'Equipe A',
+                contato: '(79) 99999-9999'
+            },
+       ];
+
+        // Ajusta nextId para não colidir com IDs demo
+        this.nextId = demo.length > 0 ? Math.max(...demo.map(d => d.id)) + 1 : 1;
+        return demo;
+    }
 
     // ==================== MÉTODOS PRINCIPAIS ATUALIZADOS ====================
 
