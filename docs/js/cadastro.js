@@ -1,24 +1,221 @@
-// Sistema de gerenciamento de contatos - VERSÃO SIMPLIFICADA
+// Sistema de gerenciamento de contatos - VERSÃO COM BANCO DE DADOS
 class ContactsManager {
     constructor() {
-        this.contatos = this.loadInitialData();
+        // Configuração da API
+        this.API_BASE = "http://localhost:8000";
+        this.token = localStorage.getItem("token");
+
+        this.contatos = [];
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
         this.currentView = 'pontos';
-        this.nextId = this.contatos.length > 0 ? Math.max(...this.contatos.map(c => c.id)) + 1 : 1;
+        this.nextId = 1;
 
         console.log('ContactsManager inicializado');
         this.init();
     }
 
-    loadInitialData() {
-        const stored = localStorage.getItem('contatos');
-        if (stored) {
-            return JSON.parse(stored);
+    // ==================== MÉTODOS DA API ====================
+
+    async makeApiCall(endpoint, options = {}) {
+        try {
+            const response = await fetch(`${this.API_BASE}${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+
+    // Buscar contatos do banco
+    async loadContacts() {
+        try {
+            const data = await this.makeApiCall('/estatiticas-contatos');
+            this.contatos = data.map(contato => ({
+                id: contato.id,
+                nome: contato.nome,
+                idade: contato.idade,
+                sexo: contato.sexo,
+                email: contato.email,
+                telefone: contato.telefone,
+                cidade: contato.cidade,
+                bairro: contato.bairro,
+                escolaridade: contato.escolaridade,
+                assessor: contato.assessor,
+                assunto: contato.assunto,
+                observacao: contato.observacao,
+                status: contato.status || 'ativo',
+                dataCadastro: this.formatDate(contato.data_cadastro || contato.created_at),
+                lat: contato.lat || this.generateCoordinates(contato.cidade, contato.bairro).lat,
+                lng: contato.lng || this.generateCoordinates(contato.cidade, contato.bairro).lng
+            }));
+
+            this.nextId = this.contatos.length > 0 ? Math.max(...this.contatos.map(c => c.id)) + 1 : 1;
+            return this.contatos;
+        } catch (error) {
+            console.warn('Erro ao carregar contatos, usando dados demo:', error);
+            // Fallback para dados demo
+            this.contatos = this.loadInitialData();
+            return this.contatos;
+        }
+    }
+
+    // Salvar novo contato no banco
+    async saveContact(contactData) {
+        try {
+            console.log('📤 Enviando dados para API:', contactData);
+
+            const response = await fetch(`${this.API_BASE}/contatos`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nome: contactData.nome,
+                    idade: contactData.idade,
+                    sexo: contactData.sexo,
+                    email: contactData.email,
+                    telefone: contactData.telefone,
+                    cidade: contactData.cidade,
+                    bairro: contactData.bairro,
+                    escolaridade: contactData.escolaridade,
+                    assessor: contactData.assessor,
+                    assunto: contactData.assunto,
+                    observacao: contactData.observacao,
+                    status: contactData.status,
+                    data_cadastro: this.parseDateToAPI(contactData.dataCadastro),
+                    lat: contactData.lat,
+                    lng: contactData.lng
+                })
+            });
+
+            console.log('📥 Resposta da API - Status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Erro HTTP:', response.status, errorText);
+                throw new Error(`Erro ${response.status}: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Contato salvo com sucesso:', result);
+            return result;
+
+        } catch (error) {
+            console.error('💥 Erro completo ao salvar contato:', error);
+            throw error;
+        }
+    }
+
+    // Atualizar contato existente
+    async updateContactAPI(contactId, contactData) {
+        try {
+            const response = await this.makeApiCall(`/contatos/${contactId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    nome: contactData.nome,
+                    idade: contactData.idade,
+                    sexo: contactData.sexo,
+                    email: contactData.email,
+                    telefone: contactData.telefone,
+                    cidade: contactData.cidade,
+                    bairro: contactData.bairro,
+                    escolaridade: contactData.escolaridade,
+                    assessor: contactData.assessor,
+                    assunto: contactData.assunto,
+                    observacao: contactData.observacao,
+                    status: contactData.status,
+                    lat: contactData.lat,
+                    lng: contactData.lng
+                })
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Erro ao atualizar contato:', error);
+            throw error;
+        }
+    }
+
+    // Excluir contato
+    async deleteContactFromAPI(contactId) {
+        try {
+            const response = await this.makeApiCall(`/contatos/${contactId}`, {
+                method: 'DELETE'
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Erro ao excluir contato:', error);
+            throw error;
+        }
+    }
+
+    // Buscar estatísticas
+    async loadStatistics() {
+        try {
+            const data = await this.makeApiCall('/estatisticas-contatos');
+            return data;
+        } catch (error) {
+            console.warn('Erro ao carregar estatísticas:', error);
+            return this.calculateLocalStatistics();
+        }
+    }
+
+    // ==================== MÉTODOS AUXILIARES ====================
+
+    formatDate(dateString) {
+        if (!dateString) return new Date().toLocaleDateString('pt-BR');
+        const date = new Date(dateString);
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = date.getFullYear();
+        return `${dd}/${mm}/${yy}`;
+    }
+
+    parseDateToAPI(dateString) {
+        if (!dateString || dateString === '-') return null;
+
+        if (dateString.includes('/')) {
+            const parts = dateString.split('/');
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
 
-        return [
+        return dateString;
+    }
+
+    calculateLocalStatistics() {
+        const totalContacts = this.contatos.length;
+        const activeContacts = this.contatos.filter(contact => contact.status === 'ativo').length;
+        const cities = new Set(this.contatos.map(contact => contact.cidade));
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        const novosHoje = this.contatos.filter(contact => contact.dataCadastro === hoje).length;
+
+        return {
+            total_contacts: totalContacts,
+            active_contacts: activeContacts,
+            total_cities: cities.size,
+            new_today: novosHoje
+        };
+    }
+
+    loadInitialData() {
+        // Dados demo usados como fallback quando a API não responde
+        const demo = [
             {
                 id: 1,
                 nome: "João Silva",
@@ -44,17 +241,318 @@ class ContactsManager {
                 lng: -37.2064
             }
         ];
+
+        // Ajusta nextId para não colidir com IDs demo
+        this.nextId = demo.length > 0 ? Math.max(...demo.map(d => d.id)) + 1 : 1;
+        return demo;
     }
 
-    init() {
-        console.log('Iniciando ContactsManager...');
+    // ==================== MÉTODO DE DEBUG ADICIONADO ====================
+
+    async testAPIConnection() {
+        try {
+            console.log('🔍 Testando conexão com API...');
+            console.log('Token:', this.token ? 'Presente' : 'Ausente');
+            console.log('API Base:', this.API_BASE);
+            
+            const response = await fetch(`${this.API_BASE}/contatos`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            console.log('Status da API:', response.status);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ API conectada - Dados recebidos:', data);
+            } else {
+                console.error('❌ Erro na API:', response.status);
+            }
+        } catch (error) {
+            console.error('💥 Falha na conexão com API:', error);
+        }
+    }
+
+    // ==================== MÉTODOS PRINCIPAIS CORRIGIDOS ====================
+
+    async init() {
+        // Testa a conexão com a API primeiro
+        await this.testAPIConnection();
+        
+        await this.loadContacts();
         this.initMap();
         this.initEventListeners();
         this.carregarMunicipiosSergipe();
         this.carregarTabelaContatos();
-        this.atualizarEstatisticas();
+        await this.atualizarEstatisticas();
         this.refreshMap();
     }
+
+    async handleFormSubmit(e) {
+        e.preventDefault();
+        console.log('Processando formulário...');
+
+        const form = e.target;
+
+        // Pega os valores diretamente dos elementos
+        let nome = document.getElementById('nomeCompleto').value.trim();
+        let telefone = document.getElementById('celular').value.trim();
+        let cidade = document.getElementById('municipio').value;
+        let bairro = document.getElementById('bairro').value;
+
+        console.log('Valores do formulário:', {
+            nome, telefone, cidade, bairro
+        });
+
+        // Validação detalhada
+        if (!nome || nome === '') {
+            alert('Por favor, preencha o nome completo');
+            document.getElementById('nomeCompleto').focus();
+            return;
+        }
+
+        if (!telefone || telefone === '' || telefone === '(79) ') {
+            alert('Por favor, preencha o número de celular');
+            document.getElementById('celular').focus();
+            return;
+        }
+
+        // VALIDAÇÃO DO TELEFONE
+        if (telefone && telefone.trim() !== '') {
+            // Remove formatação para validar
+            const phoneDigits = telefone.replace(/\D/g, '');
+
+            // Verifica se tem pelo menos 10 dígitos (DDD + número)
+            if (phoneDigits.length < 10) {
+                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
+                document.getElementById('celular').focus();
+                return;
+            }
+
+            // Mantém o formato bonito para salvar
+            telefone = telefone.trim();
+        }
+
+        if (!cidade || cidade === '') {
+            alert('Por favor, selecione um município');
+            document.getElementById('municipio').focus();
+            return;
+        }
+
+        if (!bairro || bairro === '') {
+            alert('Por favor, selecione um bairro');
+            document.getElementById('bairro').focus();
+            return;
+        }
+
+        // Pega os outros campos (não obrigatórios)
+        const idade = document.getElementById('idade').value.trim();
+        const sexo = document.getElementById('sexo').value;
+        const email = document.getElementById('email').value.trim();
+        const escolaridade = document.getElementById('escolaridade').value;
+        const assessor = document.getElementById('assessor').value.trim();
+        const assunto = document.getElementById('assunto').value;
+        const observacao = document.getElementById('observacao').value.trim();
+
+        // Gera coordenadas
+        const coords = this.generateCoordinates(cidade, bairro);
+
+        // Cria novo contato
+        const novoContato = {
+            id: this.nextId++, // ID temporário
+            nome: nome,
+            idade: idade,
+            sexo: sexo,
+            email: email,
+            telefone: telefone,
+            cidade: cidade,
+            bairro: bairro,
+            escolaridade: escolaridade,
+            assessor: assessor,
+            assunto: assunto,
+            observacao: observacao,
+            status: 'ativo',
+            dataCadastro: new Date().toLocaleDateString('pt-BR'),
+            lat: coords.lat,
+            lng: coords.lng
+        };
+
+        console.log('Novo contato criado:', novoContato);
+
+        try {
+            // Salva no backend
+            const savedContact = await this.saveContact(novoContato);
+
+            // Atualiza com ID real do banco
+            novoContato.id = savedContact.id;
+
+            // Adiciona localmente
+            this.contatos.unshift(novoContato);
+
+            // Atualiza a interface
+            this.carregarTabelaContatos();
+            await this.atualizarEstatisticas();
+            this.refreshMap();
+            this.fecharNovoCadastro();
+
+            this.showNotification('Contato cadastrado com sucesso!', 'success');
+
+        } catch (error) {
+            console.error('Erro ao salvar contato:', error);
+            this.showNotification('Erro ao salvar contato. Tente novamente.', 'error');
+        }
+    }
+
+    async updateContact(id, form) {
+        let nome = document.getElementById('nomeCompleto').value.trim();
+        let telefone = document.getElementById('celular').value.trim();
+        let cidade = document.getElementById('municipio').value;
+        let bairro = document.getElementById('bairro').value;
+
+        console.log('Valores do formulário (edição):', {
+            nome, telefone, cidade, bairro
+        });
+
+        // Validação (mesma do cadastro)
+        if (!nome || nome === '') {
+            alert('Por favor, preencha o nome completo');
+            document.getElementById('nomeCompleto').focus();
+            return;
+        }
+
+        if (!telefone || telefone === '' || telefone === '(79) ') {
+            alert('Por favor, preencha o número de celular');
+            document.getElementById('celular').focus();
+            return;
+        }
+
+        // VALIDAÇÃO DO TELEFONE
+        if (telefone && telefone.trim() !== '') {
+            const phoneDigits = telefone.replace(/\D/g, '');
+
+            if (phoneDigits.length < 10) {
+                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
+                document.getElementById('celular').focus();
+                return;
+            }
+
+            telefone = telefone.trim();
+        }
+        
+        if (!cidade || cidade === '') {
+            alert('Por favor, selecione um município');
+            document.getElementById('municipio').focus();
+            return;
+        }
+
+        if (!bairro || bairro === '') {
+            alert('Por favor, selecione um bairro');
+            document.getElementById('bairro').focus();
+            return;
+        }
+
+        try {
+            // Atualiza no backend
+            await this.updateContactAPI(id, {
+                nome: nome,
+                idade: document.getElementById('idade').value.trim(),
+                sexo: document.getElementById('sexo').value,
+                email: document.getElementById('email').value.trim(),
+                telefone: telefone,
+                cidade: cidade,
+                bairro: bairro,
+                escolaridade: document.getElementById('escolaridade').value,
+                assessor: document.getElementById('assessor').value.trim(),
+                assunto: document.getElementById('assunto').value,
+                observacao: document.getElementById('observacao').value.trim(),
+                status: 'ativo'
+            });
+
+            // Atualiza localmente
+            const contactIndex = this.contatos.findIndex(c => c.id === id);
+            if (contactIndex !== -1) {
+                this.contatos[contactIndex] = {
+                    ...this.contatos[contactIndex],
+                    nome: nome,
+                    idade: document.getElementById('idade').value.trim(),
+                    sexo: document.getElementById('sexo').value,
+                    email: document.getElementById('email').value.trim(),
+                    telefone: telefone,
+                    cidade: cidade,
+                    bairro: bairro,
+                    escolaridade: document.getElementById('escolaridade').value,
+                    assessor: document.getElementById('assessor').value.trim(),
+                    assunto: document.getElementById('assunto').value,
+                    observacao: document.getElementById('observacao').value.trim()
+                };
+
+                this.carregarTabelaContatos();
+                await this.atualizarEstatisticas();
+                this.refreshMap();
+                this.fecharNovoCadastro();
+
+                this.showNotification('Contato atualizado com sucesso!', 'success');
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar contato:', error);
+            this.showNotification('Erro ao atualizar contato. Tente novamente.', 'error');
+        }
+    }
+
+    async deleteContact(id) {
+        console.log('Excluindo contato:', id);
+        const contato = this.contatos.find(c => c.id === id);
+
+        if (contato && confirm(`Tem certeza que deseja excluir o contato "${contato.nome}"?`)) {
+            try {
+                await this.deleteContactFromAPI(id);
+
+                // Remove localmente
+                this.contatos = this.contatos.filter(c => c.id !== id);
+                this.carregarTabelaContatos();
+                await this.atualizarEstatisticas();
+                this.refreshMap();
+
+                this.showNotification('Contato excluído com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir contato:', error);
+                this.showNotification('Erro ao excluir contato. Tente novamente.', 'error');
+            }
+        }
+    }
+
+    async atualizarEstatisticas() {
+        console.log('Atualizando estatísticas...');
+        try {
+            const stats = await this.loadStatistics();
+
+            // Atualiza os elementos se existirem
+            const totalElem = document.getElementById('totalContacts');
+            const activeElem = document.getElementById('activeContacts');
+            const newElem = document.getElementById('newToday');
+            const citiesElem = document.getElementById('totalCities');
+
+            if (totalElem) totalElem.textContent = stats.total_contacts;
+            if (activeElem) activeElem.textContent = stats.active_contacts;
+            if (newElem) newElem.textContent = stats.new_today;
+            if (citiesElem) citiesElem.textContent = stats.total_cities;
+        } catch (error) {
+            // Fallback para cálculo local
+            const stats = this.calculateLocalStatistics();
+            const totalElem = document.getElementById('totalContacts');
+            const activeElem = document.getElementById('activeContacts');
+            const newElem = document.getElementById('newToday');
+            const citiesElem = document.getElementById('totalCities');
+
+            if (totalElem) totalElem.textContent = stats.total_contacts;
+            if (activeElem) activeElem.textContent = stats.active_contacts;
+            if (newElem) newElem.textContent = stats.new_today;
+            if (citiesElem) citiesElem.textContent = stats.total_cities;
+        }
+    }
+
+    // ==================== MÉTODOS ORIGINAIS (MANTIDOS) ====================
 
     initMap() {
         console.log('Inicializando mapa...');
@@ -101,7 +599,7 @@ class ContactsManager {
             this.handleFormSubmit(e);
         });
 
-        // Formatação de telefone - ADIÇÃO AQUI
+        // Formatação de telefone
         const celularInput = document.getElementById('celular');
         if (celularInput) {
             celularInput.addEventListener('input', (e) => this.formatarTelefone(e.target));
@@ -109,7 +607,6 @@ class ContactsManager {
 
         console.log('Event listeners configurados');
     }
-
 
     setView(view) {
         console.log('Mudando view para:', view);
@@ -474,115 +971,6 @@ class ContactsManager {
         };
     }
 
-    handleFormSubmit(e) {
-        e.preventDefault();
-        console.log('Processando formulário...');
-
-        const form = e.target;
-
-        // Pega os valores diretamente dos elementos
-        const nome = document.getElementById('nomeCompleto').value.trim();
-        const telefone = document.getElementById('celular').value.trim();
-        const cidade = document.getElementById('municipio').value;
-        const bairro = document.getElementById('bairro').value;
-
-        console.log('Valores do formulário:', {
-            nome, telefone, cidade, bairro
-        });
-
-        // Validação detalhada
-        if (!nome || nome === '') {
-            alert('Por favor, preencha o nome completo');
-            document.getElementById('nomeCompleto').focus();
-            return;
-        }
-
-        if (!telefone || telefone === '' || telefone === '(79) ') {
-            alert('Por favor, preencha o número de celular');
-            document.getElementById('celular').focus();
-            return;
-        }
-
-        // VALIDAÇÃO DO TELEFONE - ADIÇÃO AQUI
-        if (telefone && telefone.trim() !== '') {
-            // Remove formatação para validar
-            const phoneDigits = telefone.replace(/\D/g, '');
-
-            // Verifica se tem pelo menos 10 dígitos (DDD + número)
-            if (phoneDigits.length < 10) {
-                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
-                document.getElementById('celular').focus();
-                return;
-            }
-
-            // Mantém o formato bonito para salvar
-            telefone = telefone.trim();
-        }
-
-        if (!cidade || cidade === '') {
-            alert('Por favor, selecione um município');
-            document.getElementById('municipio').focus();
-            return;
-        }
-
-        if (!bairro || bairro === '') {
-            alert('Por favor, selecione um bairro');
-            document.getElementById('bairro').focus();
-            return;
-        }
-
-        // Pega os outros campos (não obrigatórios)
-        const idade = document.getElementById('idade').value.trim();
-        const sexo = document.getElementById('sexo').value;
-        const email = document.getElementById('email').value.trim();
-        const escolaridade = document.getElementById('escolaridade').value;
-        const assessor = document.getElementById('assessor').value.trim();
-        const assunto = document.getElementById('assunto').value;
-        const observacao = document.getElementById('observacao').value.trim();
-
-        // Gera coordenadas
-        const coords = this.generateCoordinates(cidade, bairro);
-
-        // Cria novo contato
-        const novoContato = {
-            id: this.nextId++,
-            nome: nome,
-            idade: idade,
-            sexo: sexo,
-            email: email,
-            telefone: telefone,
-            cidade: cidade,
-            bairro: bairro,
-            escolaridade: escolaridade,
-            assessor: assessor,
-            assunto: assunto,
-            observacao: observacao,
-            status: 'ativo',
-            dataCadastro: new Date().toLocaleDateString('pt-BR'),
-            lat: coords.lat,
-            lng: coords.lng
-        };
-
-        console.log('Novo contato criado:', novoContato);
-
-        // Adiciona aos dados
-        this.contatos.unshift(novoContato);
-        this.salvarContatos();
-
-        // Atualiza a interface
-        this.carregarTabelaContatos();
-        this.atualizarEstatisticas();
-        this.refreshMap();
-        this.fecharNovoCadastro();
-
-        alert('Contato cadastrado com sucesso!');
-    }
-
-    salvarContatos() {
-        localStorage.setItem('contatos', JSON.stringify(this.contatos));
-        console.log('Contatos salvos no localStorage');
-    }
-
     carregarTabelaContatos() {
         console.log('Carregando tabela de contatos...');
         const tbody = document.getElementById('contactsTableBody');
@@ -625,20 +1013,6 @@ class ContactsManager {
         console.log('Tabela de contatos carregada');
     }
 
-    excluirContato(id) {
-        console.log('Excluindo contato:', id);
-        const contato = this.contatos.find(c => c.id === id);
-
-        if (contato && confirm(`Tem certeza que deseja excluir o contato "${contato.nome}"?`)) {
-            this.contatos = this.contatos.filter(c => c.id !== id);
-            this.salvarContatos();
-            this.carregarTabelaContatos();
-            this.atualizarEstatisticas();
-            this.refreshMap();
-            alert('Contato excluído com sucesso!');
-        }
-    }
-
     editarContato(id) {
         console.log('Editando contato:', id);
         const contato = this.contatos.find(c => c.id === id);
@@ -673,106 +1047,10 @@ class ContactsManager {
 
         newForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            this.salvarEdicaoContato(id);
+            this.updateContact(id);
         });
 
         newForm.querySelector('button[type="submit"]').textContent = 'Atualizar Cadastro';
-    }
-
-    salvarEdicaoContato(id) {
-        console.log('Salvando edição do contato:', id);
-
-        // Pega os valores diretamente dos elementos
-        const nome = document.getElementById('nomeCompleto').value.trim();
-        const telefone = document.getElementById('celular').value.trim();
-        const cidade = document.getElementById('municipio').value;
-        const bairro = document.getElementById('bairro').value;
-
-        console.log('Valores do formulário (edição):', {
-            nome, telefone, cidade, bairro
-        });
-
-        // Validação (mesma do cadastro)
-        if (!nome || nome === '') {
-            alert('Por favor, preencha o nome completo');
-            document.getElementById('nomeCompleto').focus();
-            return;
-        }
-
-        if (!telefone || telefone === '' || telefone === '(79) ') {
-            alert('Por favor, preencha o número de celular');
-            document.getElementById('celular').focus();
-            return;
-        }
-
-        // VALIDAÇÃO DO TELEFONE - ADIÇÃO AQUI
-        if (telefone && telefone.trim() !== '') {
-            const phoneDigits = telefone.replace(/\D/g, '');
-
-            if (phoneDigits.length < 10) {
-                alert('Por favor, insira um telefone válido com DDD + número (mínimo 10 dígitos)');
-                document.getElementById('celular').focus();
-                return;
-            }
-
-            telefone = telefone.trim();
-        }
-        
-        if (!cidade || cidade === '') {
-            alert('Por favor, selecione um município');
-            document.getElementById('municipio').focus();
-            return;
-        }
-
-        if (!bairro || bairro === '') {
-            alert('Por favor, selecione um bairro');
-            document.getElementById('bairro').focus();
-            return;
-        }
-
-        const contatoIndex = this.contatos.findIndex(c => c.id === id);
-        if (contatoIndex !== -1) {
-            this.contatos[contatoIndex] = {
-                ...this.contatos[contatoIndex],
-                nome: nome,
-                idade: document.getElementById('idade').value.trim(),
-                sexo: document.getElementById('sexo').value,
-                email: document.getElementById('email').value.trim(),
-                telefone: telefone,
-                cidade: cidade,
-                bairro: bairro,
-                escolaridade: document.getElementById('escolaridade').value,
-                assessor: document.getElementById('assessor').value.trim(),
-                assunto: document.getElementById('assunto').value,
-                observacao: document.getElementById('observacao').value.trim()
-            };
-
-            this.salvarContatos();
-            this.carregarTabelaContatos();
-            this.atualizarEstatisticas();
-            this.refreshMap();
-            this.fecharNovoCadastro();
-            alert('Contato atualizado com sucesso!');
-        }
-    }
-
-    atualizarEstatisticas() {
-        console.log('Atualizando estatísticas...');
-        const activeContacts = this.contatos.filter(c => c.status === 'ativo').length;
-        const cidadesUnicas = [...new Set(this.contatos.map(c => c.cidade))].length;
-        const hoje = new Date().toLocaleDateString('pt-BR');
-        const novosHoje = this.contatos.filter(c => c.dataCadastro === hoje).length;
-
-        // Atualiza os elementos se existirem
-        const totalElem = document.getElementById('totalContacts');
-        const activeElem = document.getElementById('activeContacts');
-        const newElem = document.getElementById('newToday');
-        const citiesElem = document.getElementById('totalCities');
-
-        if (totalElem) totalElem.textContent = this.contatos.length;
-        if (activeElem) activeElem.textContent = activeContacts;
-        if (newElem) newElem.textContent = novosHoje;
-        if (citiesElem) citiesElem.textContent = cidadesUnicas;
     }
 
     abrirNovoCadastro() {
@@ -793,6 +1071,54 @@ class ContactsManager {
         if (form) form.reset();
     }
 
+    showNotification(message, type = 'info') {
+        // Cria notificação temporária
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'var(--primary-1)' : 'var(--muted-2)';
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 14px;
+            max-width: 300px;
+            animation: slideIn 0.3s ease;
+        `;
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="${type === 'success' ? 'check-circle' : 'info'}"></i>
+                ${message}
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Atualiza ícones
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Remove após 3 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }, 3000);
+    }
+
     exportContacts() {
         console.log('Exportando contatos...');
         const csvContent = "data:text/csv;charset=utf-8,"
@@ -811,9 +1137,16 @@ class ContactsManager {
     }
 }
 
-// ================= CONFIG GLOBAL SIMPLIFICADA =================
+// ================= CONFIG GLOBAL =================
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM carregado - Inicializando aplicação...');
+
+    // Verifica se usuário está logado
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'index.html';
+        return;
+    }
 
     // Inicializa ícones do Lucide
     if (window.lucide) {
@@ -946,7 +1279,29 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Aplicação inicializada com sucesso!');
 });
 
-// Verifica se há erros de carregamento
-window.addEventListener('error', function (e) {
-    console.error('Erro global:', e.error);
-});
+// Adiciona os estilos CSS para as animações
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);

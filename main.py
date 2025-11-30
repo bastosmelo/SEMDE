@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import engine, get_db, Base
-from models import Usuario, Acao
-from schemas import UsuarioCreate, UsuarioLogin, Token, AcaoCreate, AcaoResponse, EstatisticasResponse
+from models import Usuario, Acao, Contato
+from schemas import UsuarioCreate, UsuarioLogin, Token, AcaoCreate, AcaoResponse, EstatisticasResponse, ContatoCreate, ContatoResponse, ContatoUpdate
 from auth import gerar_hash, verificar_senha, criar_token, verificar_token
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -264,7 +264,191 @@ def deletar_acao(
     
     return {"mensagem": "Ação deletada com sucesso"}
 
-# ==================== ROTAS DE ESTATÍSTICAS E PERFIL ====================
+# ==================== ROTAS DE CONTATOS ====================
+
+@app.get("/contatos", response_model=List[ContatoResponse])
+def listar_contatos(
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Lista todos os contatos do usuário logado
+    """
+    contatos = db.query(Contato).filter(Contato.usuario_id == current_user.id).order_by(Contato.criado_em.desc()).all()
+    return contatos
+
+@app.post("/contatos", response_model=ContatoResponse)
+def criar_contato(
+    contato: ContatoCreate, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Cria um novo contato
+    """
+    try:
+        # Verifica se já existe contato com o mesmo telefone para este usuário
+        existente = db.query(Contato).filter(
+            Contato.telefone == contato.telefone,
+            Contato.usuario_id == current_user.id
+        ).first()
+        
+        if existente:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Já existe um contato com este telefone"
+            )
+        
+        novo_contato = Contato(
+            nome=contato.nome,
+            idade=contato.idade,
+            sexo=contato.sexo,
+            email=contato.email,
+            telefone=contato.telefone,
+            cidade=contato.cidade,
+            bairro=contato.bairro,
+            escolaridade=contato.escolaridade,
+            assessor=contato.assessor,
+            assunto=contato.assunto,
+            observacao=contato.observacao,
+            status=contato.status or "ativo",
+            data_cadastro=contato.data_cadastro or date.today(),
+            lat=contato.lat,
+            lng=contato.lng,
+            usuario_id=current_user.id
+        )
+        
+        db.add(novo_contato)
+        db.commit()
+        db.refresh(novo_contato)
+        
+        return novo_contato
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao criar contato: {str(e)}"
+        )
+
+@app.get("/contatos/{contato_id}", response_model=ContatoResponse)
+def obter_contato(
+    contato_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Obtém um contato específico pelo ID
+    """
+    contato = db.query(Contato).filter(
+        Contato.id == contato_id, 
+        Contato.usuario_id == current_user.id
+    ).first()
+    
+    if not contato:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contato não encontrado"
+        )
+    
+    return contato
+
+@app.put("/contatos/{contato_id}", response_model=ContatoResponse)
+def atualizar_contato(
+    contato_id: int, 
+    contato_data: ContatoUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Atualiza um contato existente
+    """
+    contato = db.query(Contato).filter(
+        Contato.id == contato_id, 
+        Contato.usuario_id == current_user.id
+    ).first()
+    
+    if not contato:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contato não encontrado"
+        )
+    
+    try:
+        # Verifica se o novo telefone já existe em outro contato
+        if contato_data.telefone != contato.telefone:
+            telefone_existente = db.query(Contato).filter(
+                Contato.telefone == contato_data.telefone,
+                Contato.usuario_id == current_user.id,
+                Contato.id != contato_id
+            ).first()
+            
+            if telefone_existente:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Já existe outro contato com este telefone"
+                )
+        
+        # Atualizar campos
+        contato.nome = contato_data.nome
+        contato.idade = contato_data.idade
+        contato.sexo = contato_data.sexo
+        contato.email = contato_data.email
+        contato.telefone = contato_data.telefone
+        contato.cidade = contato_data.cidade
+        contato.bairro = contato_data.bairro
+        contato.escolaridade = contato_data.escolaridade
+        contato.assessor = contato_data.assessor
+        contato.assunto = contato_data.assunto
+        contato.observacao = contato_data.observacao
+        contato.status = contato_data.status
+        contato.data_cadastro = contato_data.data_cadastro
+        contato.lat = contato_data.lat
+        contato.lng = contato_data.lng
+        contato.atualizado_em = datetime.now()
+        
+        db.commit()
+        db.refresh(contato)
+        
+        return contato
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao atualizar contato: {str(e)}"
+        )
+
+@app.delete("/contatos/{contato_id}")
+def deletar_contato(
+    contato_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Deleta um contato
+    """
+    contato = db.query(Contato).filter(
+        Contato.id == contato_id, 
+        Contato.usuario_id == current_user.id
+    ).first()
+    
+    if not contato:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contato não encontrado"
+        )
+    
+    db.delete(contato)
+    db.commit()
+    
+    return {"mensagem": "Contato deletado com sucesso"}
+
+# ==================== ROTAS DE ESTATÍSTICAS ====================
 
 @app.get("/estatisticas", response_model=EstatisticasResponse)
 def obter_estatisticas(
@@ -303,6 +487,48 @@ def obter_estatisticas(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao obter estatísticas: {str(e)}"
         )
+
+@app.get("/estatisticas-contatos")
+def obter_estatisticas_contatos(
+    db: Session = Depends(get_db), 
+    current_user: Usuario = Depends(get_current_user)
+):
+    """
+    Retorna estatísticas dos contatos do usuário
+    """
+    try:
+        # Total de contatos
+        total_contacts = db.query(Contato).filter(Contato.usuario_id == current_user.id).count()
+        
+        # Contatos ativos
+        active_contacts = db.query(Contato).filter(
+            Contato.usuario_id == current_user.id,
+            Contato.status == 'ativo'
+        ).count()
+        
+        # Cidades únicas
+        total_cities = db.query(Contato.cidade).filter(Contato.usuario_id == current_user.id).distinct().count()
+        
+        # Novos hoje
+        new_today = db.query(Contato).filter(
+            Contato.usuario_id == current_user.id,
+            Contato.data_cadastro == date.today()
+        ).count()
+        
+        return {
+            "total_contacts": total_contacts,
+            "active_contacts": active_contacts,
+            "total_cities": total_cities,
+            "new_today": new_today
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao obter estatísticas de contatos: {str(e)}"
+        )
+
+# ==================== ROTAS DE PERFIL ====================
 
 @app.get("/perfil")
 def obter_perfil(current_user: Usuario = Depends(get_current_user)):
