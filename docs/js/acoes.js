@@ -4,7 +4,10 @@ class ActionsManager {
         // Configuração da API
         this.API_BASE = "http://localhost:8000";
         this.token = localStorage.getItem("token");
-
+        if (!this.token) {
+        alert("Sessão expirada. Faça login novamente.");
+        window.location.href = "index.html";
+        }
         // Botões de exportação (com IDs específicos)
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
@@ -13,7 +16,7 @@ class ActionsManager {
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
-    this.currentView = 'calor'; 
+        this.currentView = 'calor'; 
         this.nextId = 1;
 
         // Sistema de posições personalizadas
@@ -1363,15 +1366,10 @@ class ActionsManager {
             `;
             tbody.appendChild(row);
         });
-    }
-
-        // Atualiza ícones do Lucide
-        if (window.lucide) {
-            lucide.createIcons();
         }
     }
 
-    handleTableClick(e) {
+    handleTableClick(e); {
         const btn = e.target.closest('button');
         if (!btn) return;
 
@@ -1385,7 +1383,7 @@ class ActionsManager {
         }
     }
 
-    editAction(id) {
+    editAction(id); {
         const action = this.actions.find(a => a.id === id);
         if (!action) return;
 
@@ -1408,7 +1406,7 @@ class ActionsManager {
         } else {
             form.dataAcao.value = '';
         }
-
+    
         // Abre o modal
         this.openModal();
 
@@ -1423,7 +1421,7 @@ class ActionsManager {
     }
 
     // Métodos de exportação (MANTIDOS COMPLETOS)
-    exportToPDF() {
+    exportToPDF(); {
         const { jsPDF } = window.jspdf;
 
         // Cria o documento PDF
@@ -1499,7 +1497,7 @@ class ActionsManager {
         this.showNotification('PDF gerado com sucesso!', 'success');
     }
 
-    exportToExcel() {
+    exportToExcel(); {
         // Prepara os dados
         const data = this.actions.map(action => ({
             'Cidade': action.cidade,
@@ -1605,7 +1603,6 @@ class ActionsManager {
 
         this.showNotification('Excel gerado com sucesso!', 'success');
     }
-}
 
 // ================= CONFIG GLOBAL =================
 // Inicializa quando a página carrega

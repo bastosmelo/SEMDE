@@ -4,7 +4,10 @@ class ContactsManager {
         // Configuração da API
         this.API_BASE = "http://localhost:8000";
         this.token = localStorage.getItem("token");
-
+        if (!this.token) {
+        alert("Sessão expirada. Faça login novamente.");
+        window.location.href = "index.html";
+        }
         this.contatos = [];
         this.map = null;
         this.currentMarkers = [];
@@ -850,18 +853,18 @@ class ContactsManager {
         }
     }
 
-    const marker = L.marker([contato.lat, contato.lng], { draggable: true })
-    .bindPopup(this.createPopupContent(contato))
-    .addTo(this.map);
+        const marker = L.marker([contato.lat, contato.lng], { draggable: true })
+        .bindPopup(this.createPopupContent(contato))
+        .addTo(this.map);
 
-    marker.on("dragend", (e) => {
-    const { lat, lng } = e.target.getLatLng();
-    this.setCustomPosition(contato.cidade, contato.bairro, lat, lng);
-    contato.lat = lat;
-    contato.lng = lng;
-    });
+        marker.on("dragend", (e) => {
+        const { lat, lng } = e.target.getLatLng();
+        this.setCustomPosition(contato.cidade, contato.bairro, lat, lng);
+        contato.lat = lat;
+        contato.lng = lng;
+        });
 
-    createPopupContent(contato) {
+    createPopupContent(contato); {
         return `
             <div>
                 <strong>${contato.nome}</strong><br>
@@ -873,8 +876,8 @@ class ContactsManager {
     }
 
     // Dados de Sergipe
-    carregarMunicipiosSergipe() {
-        console.log('Carregando municípios...');
+    carregarMunicipiosSergipe(); {
+            console.log('Carregando municípios...');
         const municipiosSergipe = [
             "Aracaju", "Amparo de São Francisco", "Aquidabã", "Arauá", "Areia Branca",
             "Barra dos Coqueiros", "Boquim", "Brejo Grande", "Campo do Brito", "Canhoba",
@@ -921,7 +924,7 @@ class ContactsManager {
         console.log('Municípios carregados');
     }
 
-    atualizarBairros(municipio) {
+    atualizarBairros(municipio); {
         console.log('Atualizando bairros para:', municipio);
 
         // Se municipio for um evento (quando chamado pelo onchange), pega o value
@@ -966,7 +969,7 @@ class ContactsManager {
         }
     }
 
-    formatarTelefone(input) {
+    formatarTelefone(input); {
         // Remove tudo que não é número
         let value = input.value.replace(/\D/g, '');
 
@@ -995,7 +998,7 @@ class ContactsManager {
         input.setSelectionRange(value.length, value.length);
     }
 
-    generateCoordinates(cidade, bairro) {
+    generateCoordinates(cidade, bairro); {
         const cityCoordinates = {
             'Aracaju': { lat: -10.9111, lng: -37.0717 },
             'São Cristóvão': { lat: -11.0144, lng: -37.2064 },
@@ -1023,7 +1026,7 @@ class ContactsManager {
         };
     }
 
-    carregarTabelaContatos() {
+    carregarTabelaContatos(); {
     console.log("Carregando tabela de contatos...");
     const tbody = document.getElementById("contactsTableBody");
     if (!tbody) {
@@ -1067,7 +1070,7 @@ class ContactsManager {
         console.log(`Tabela atualizada com ${this.contatos.length} contatos.`);
     }
 
-    editarContato(id) {
+    editarContato(id); {
         console.log('Editando contato:', id);
         const contato = this.contatos.find(c => c.id === id);
         if (!contato) return;
@@ -1107,7 +1110,7 @@ class ContactsManager {
         newForm.querySelector('button[type="submit"]').textContent = 'Atualizar Cadastro';
     }
 
-    abrirNovoCadastro() {
+    abrirNovoCadastro(); {
         console.log('Abrindo formulário de cadastro');
         const section = document.getElementById('novoCadastroSection');
         if (section) {
@@ -1116,7 +1119,7 @@ class ContactsManager {
         }
     }
 
-    fecharNovoCadastro() {
+    fecharNovoCadastro(); {
         console.log('Fechando formulário de cadastro');
         const section = document.getElementById('novoCadastroSection');
         const form = document.getElementById('formNovoCadastro');
@@ -1125,7 +1128,7 @@ class ContactsManager {
         if (form) form.reset();
     }
 
-    showNotification(message, type = 'info') {
+    showNotification(message, type = 'info'); {
         // Cria notificação temporária
         const notification = document.createElement('div');
         const bgColor = type === 'success' ? 'var(--primary-1)' : 'var(--muted-2)';
@@ -1173,7 +1176,7 @@ class ContactsManager {
         }, 3000);
     }
 
-    exportContacts() {
+    exportContacts(); {
         console.log('Exportando contatos...');
         const csvContent = "data:text/csv;charset=utf-8,"
             + "Nome,E-mail,Telefone,Cidade,Bairro,Status,Data_Cadastro\n"
@@ -1189,7 +1192,6 @@ class ContactsManager {
         link.click();
         document.body.removeChild(link);
     }
-}
 
 // ================= CONFIG GLOBAL =================
 document.addEventListener('DOMContentLoaded', function () {
