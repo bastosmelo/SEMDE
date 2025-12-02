@@ -13,7 +13,7 @@ class ActionsManager {
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
-        this.currentView = 'calor';
+    this.currentView = 'calor'; 
         this.nextId = 1;
 
         // Sistema de posições personalizadas

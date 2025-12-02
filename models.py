@@ -55,7 +55,6 @@ class Contato(Base):
     lat = Column(Numeric(10, 8))
     lng = Column(Numeric(11, 8))
     criado_em = Column(TIMESTAMP, server_default=func.now())
-    atualizado_em = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     usuario_id = Column(Integer, ForeignKey("usuarios.id"))
 
     usuario = relationship("Usuario", back_populates="contatos")
