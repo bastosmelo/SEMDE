@@ -1342,27 +1342,28 @@ class ActionsManager {
     }
 
     renderTable() {
-        const tbody = document.getElementById('acoesTbody');
-        tbody.innerHTML = '';
+        const tbody = document.getElementById("acoesTbody");
+        tbody.innerHTML = "";
 
-        this.actions.forEach(action => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${action.cidade}</td>
-                <td>${action.bairro}</td>
-                <td>${action.tipo}</td>
-                <td>${action.data}</td>
-                <td class="actions-cell">
-                    <button class="btn-icon btn-edit tooltip" data-action="edit" data-id="${action.id}" data-tooltip="Editar">
-                        <i data-lucide="edit-2"></i>
-                    </button>
-                    <button class="btn-icon btn-delete tooltip" data-action="delete" data-id="${action.id}" data-tooltip="Apagar">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </td>
+        this.actions.forEach(a => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td>${a.cidade}</td>
+            <td>${a.bairro}</td>
+            <td>${a.tipo}</td>
+            <td>${a.data}</td>
+            <td>
+                <button class="btn btn-outline" onclick="actionsManager.updateAction(${a.id}, document.getElementById('formNovaAcao'))">
+                <i data-lucide="edit"></i> Editar
+                </button>
+                <button class="btn btn-danger" onclick="actionsManager.deleteAction(${a.id})">
+                <i data-lucide="trash"></i> Excluir
+                </button>
+            </td>
             `;
-            tbody.appendChild(tr);
+            tbody.appendChild(row);
         });
+    }
 
         // Atualiza ícones do Lucide
         if (window.lucide) {

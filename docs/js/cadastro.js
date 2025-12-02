@@ -568,6 +568,31 @@ class ContactsManager {
         }
     }
 
+    // Sistema de posições personalizadas
+    loadCustomPositions() {
+        const saved = localStorage.getItem('customPositions');
+        return saved ? JSON.parse(saved) : {};
+    }
+
+    saveCustomPositions() {
+        localStorage.setItem('customPositions', JSON.stringify(this.customPositions));
+    }
+
+    getPositionKey(cidade, bairro) {
+        return `${cidade}_${bairro}`.toLowerCase().replace(/\s+/g, '_');
+    }
+
+    getCustomPosition(cidade, bairro) {
+        const key = this.getPositionKey(cidade, bairro);
+        return this.customPositions[key];
+    }
+
+    setCustomPosition(cidade, bairro, lat, lng) {
+        const key = this.getPositionKey(cidade, bairro);
+        this.customPositions[key] = { lat, lng };
+        this.saveCustomPositions();
+    }
+
     // ==================== MÉTODOS ORIGINAIS (MANTIDOS) ====================
 
     initMap() {
@@ -824,6 +849,17 @@ class ContactsManager {
                 break;
         }
     }
+
+    const marker = L.marker([contato.lat, contato.lng], { draggable: true })
+    .bindPopup(this.createPopupContent(contato))
+    .addTo(this.map);
+
+    marker.on("dragend", (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    this.setCustomPosition(contato.cidade, contato.bairro, lat, lng);
+    contato.lat = lat;
+    contato.lng = lng;
+    });
 
     createPopupContent(contato) {
         return `
