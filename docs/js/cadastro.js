@@ -1028,71 +1028,22 @@ class ContactsManager {
         };
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     carregarTabelaContatos(); {
-    console.log("Carregando tabela de contatos...");
-    const tbody = document.getElementById("contactsTableBody");
-    if (!tbody) {
-        console.error("Elemento contactsTableBody não encontrado!");
-        return;
+        console.log("Carregando tabela de contatos...");
+        const tbody = document.getElementById("contactsTableBody");
+        if (!tbody) {
+            console.error("Elemento contactsTableBody não encontrado!");
+            return;
+        }
     }
-=======
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-    carregarTabelaContatos() {
+
+    carregarTabelaContatos(); {
         console.log('Carregando tabela de contatos...');
         const tbody = document.getElementById('contactsTableBody');
         if (!tbody) {
             console.error('Elemento contactsTableBody não encontrado');
             return;
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
 
         tbody.innerHTML = '';
 

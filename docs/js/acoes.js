@@ -16,43 +16,8 @@ class ActionsManager {
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         this.currentView = 'calor'; 
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
         this.nextId = 1;
 
         // Sistema de posições personalizadas
