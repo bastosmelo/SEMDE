@@ -1029,6 +1029,7 @@ class ContactsManager {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     carregarTabelaContatos(); {
     console.log("Carregando tabela de contatos...");
     const tbody = document.getElementById("contactsTableBody");
@@ -1037,6 +1038,8 @@ class ContactsManager {
         return;
     }
 =======
+=======
+>>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
     carregarTabelaContatos() {
         console.log('Carregando tabela de contatos...');
         const tbody = document.getElementById('contactsTableBody');
@@ -1044,6 +1047,9 @@ class ContactsManager {
             console.error('Elemento contactsTableBody não encontrado');
             return;
         }
+<<<<<<< HEAD
+>>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
+=======
 >>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
 
         tbody.innerHTML = '';
