@@ -18,7 +18,11 @@ class ActionsManager {
         this.heatLayer = null;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         this.currentView = 'calor'; 
+=======
+        this.currentView = 'calor';
+>>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
 =======
         this.currentView = 'calor';
 >>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
