@@ -4,10 +4,7 @@ class ContactsManager {
         // Configuração da API
         this.API_BASE = "http://localhost:8000";
         this.token = localStorage.getItem("token");
-        if (!this.token) {
-        alert("Sessão expirada. Faça login novamente.");
-        window.location.href = "index.html";
-        }
+
         this.contatos = [];
         this.map = null;
         this.currentMarkers = [];
@@ -90,47 +87,43 @@ class ContactsManager {
     // Salvar novo contato no banco
     async saveContact(contactData) {
         try {
-            console.log('📤 Enviando dados para API:', contactData);
+            console.log("Enviando dados para API:", contactData);
 
             const response = await fetch(`${this.API_BASE}/contatos`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    nome: contactData.nome,
-                    idade: contactData.idade ? parseInt(contactData.idade) : null,
-                    sexo: contactData.sexo,
-                    email: contactData.email,
-                    telefone: contactData.telefone,
-                    cidade: contactData.cidade,
-                    bairro: contactData.bairro,
-                    escolaridade: contactData.escolaridade,
-                    assessor: contactData.assessor,
-                    assunto: contactData.assunto,
-                    observacao: contactData.observacao,
-                    status: contactData.status,
-                    data_cadastro: contactData.dataCadastro || new Date().toISOString().split('T')[0],
-                    lat: contactData.lat,
-                    lng: contactData.lng
-                })
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${this.token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                nome: contactData.nome,
+                idade: contactData.idade ? parseInt(contactData.idade) : null,
+                sexo: contactData.sexo,
+                email: contactData.email,
+                telefone: contactData.telefone,
+                cidade: contactData.cidade,
+                bairro: contactData.bairro,
+                escolaridade: contactData.escolaridade,
+                assessor: contactData.assessor,
+                assunto: contactData.assunto,
+                observacao: contactData.observacao,
+                status: contactData.status || "ativo",
+                data_cadastro: new Date().toISOString().split("T")[0],
+                lat: contactData.lat,
+                lng: contactData.lng,
+            }),
             });
 
-            console.log('📥 Resposta da API - Status:', response.status);
-
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Erro HTTP:', response.status, errorText);
-                throw new Error(`Erro ${response.status}: ${errorText}`);
+            const errorText = await response.text();
+            throw new Error(`Erro ${response.status}: ${errorText}`);
             }
 
             const result = await response.json();
-            console.log('✅ Contato salvo com sucesso:', result);
+            console.log("Contato salvo com sucesso:", result);
             return result;
-
         } catch (error) {
-            console.error('💥 Erro completo ao salvar contato:', error);
+            console.error("Erro ao salvar contato:", error);
             throw error;
         }
     }
@@ -269,7 +262,7 @@ class ContactsManager {
             console.log('Token:', this.token ? 'Presente' : 'Ausente');
             console.log('API Base:', this.API_BASE);
             
-            const response = await fetch(`${this.API_BASE}/contatos`, {
+            const response = await fetch(`${this.API_BASE}/contatos`,    {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
                     'Content-Type': 'application/json',
@@ -558,6 +551,7 @@ class ContactsManager {
             if (activeElem) activeElem.textContent = stats.active_contacts;
             if (newElem) newElem.textContent = stats.new_today;
             if (citiesElem) citiesElem.textContent = stats.total_cities;
+
         } catch (error) {
             // Fallback para cálculo local
             const stats = this.calculateLocalStatistics();
@@ -570,32 +564,8 @@ class ContactsManager {
             if (activeElem) activeElem.textContent = stats.active_contacts;
             if (newElem) newElem.textContent = stats.new_today;
             if (citiesElem) citiesElem.textContent = stats.total_cities;
+
         }
-    }
-
-    // Sistema de posições personalizadas
-    loadCustomPositions() {
-        const saved = localStorage.getItem('customPositions');
-        return saved ? JSON.parse(saved) : {};
-    }
-
-    saveCustomPositions() {
-        localStorage.setItem('customPositions', JSON.stringify(this.customPositions));
-    }
-
-    getPositionKey(cidade, bairro) {
-        return `${cidade}_${bairro}`.toLowerCase().replace(/\s+/g, '_');
-    }
-
-    getCustomPosition(cidade, bairro) {
-        const key = this.getPositionKey(cidade, bairro);
-        return this.customPositions[key];
-    }
-
-    setCustomPosition(cidade, bairro, lat, lng) {
-        const key = this.getPositionKey(cidade, bairro);
-        this.customPositions[key] = { lat, lng };
-        this.saveCustomPositions();
     }
 
     // ==================== MÉTODOS ORIGINAIS (MANTIDOS) ====================
@@ -855,18 +825,7 @@ class ContactsManager {
         }
     }
 
-        const marker = L.marker([contato.lat, contato.lng], { draggable: true })
-        .bindPopup(this.createPopupContent(contato))
-        .addTo(this.map);
-
-        marker.on("dragend", (e) => {
-        const { lat, lng } = e.target.getLatLng();
-        this.setCustomPosition(contato.cidade, contato.bairro, lat, lng);
-        contato.lat = lat;
-        contato.lng = lng;
-        });
-
-    createPopupContent(contato); {
+    createPopupContent(contato) {
         return `
             <div>
                 <strong>${contato.nome}</strong><br>
@@ -878,8 +837,8 @@ class ContactsManager {
     }
 
     // Dados de Sergipe
-    carregarMunicipiosSergipe(); {
-            console.log('Carregando municípios...');
+    carregarMunicipiosSergipe() {
+        console.log('Carregando municípios...');
         const municipiosSergipe = [
             "Aracaju", "Amparo de São Francisco", "Aquidabã", "Arauá", "Areia Branca",
             "Barra dos Coqueiros", "Boquim", "Brejo Grande", "Campo do Brito", "Canhoba",
@@ -926,7 +885,7 @@ class ContactsManager {
         console.log('Municípios carregados');
     }
 
-    atualizarBairros(municipio); {
+    atualizarBairros(municipio) {
         console.log('Atualizando bairros para:', municipio);
 
         // Se municipio for um evento (quando chamado pelo onchange), pega o value
@@ -971,7 +930,7 @@ class ContactsManager {
         }
     }
 
-    formatarTelefone(input); {
+    formatarTelefone(input) {
         // Remove tudo que não é número
         let value = input.value.replace(/\D/g, '');
 
@@ -1000,7 +959,7 @@ class ContactsManager {
         input.setSelectionRange(value.length, value.length);
     }
 
-    generateCoordinates(cidade, bairro); {
+    generateCoordinates(cidade, bairro) {
         const cityCoordinates = {
             'Aracaju': { lat: -10.9111, lng: -37.0717 },
             'São Cristóvão': { lat: -11.0144, lng: -37.2064 },
@@ -1028,71 +987,51 @@ class ContactsManager {
         };
     }
 
-<<<<<<< HEAD
-    carregarTabelaContatos(); {
-        console.log("Carregando tabela de contatos...");
-        const tbody = document.getElementById("contactsTableBody");
-        if (!tbody) {
-            console.error("Elemento contactsTableBody não encontrado!");
-            return;
-        }
+    carregarTabelaContatos() {
+    console.log("Carregando tabela de contatos...");
+    const tbody = document.getElementById("contactsTableBody");
+    if (!tbody) {
+        console.error("Elemento contactsTableBody não encontrado!");
+        return;
     }
 
-    carregarTabelaContatos(); {
-        console.log('Carregando tabela de contatos...');
-        const tbody = document.getElementById('contactsTableBody');
-        if (!tbody) {
-            console.error('Elemento contactsTableBody não encontrado');
-            return;
-        }
+    // Limpa a tabela antes de inserir os dados
+    tbody.innerHTML = "";
 
-        tbody.innerHTML = '';
+    // Percorre todos os contatos carregados do banco
+    this.contatos.forEach((c) => {
+        const row = document.createElement("tr");
 
-=======
-    carregarTabelaContatos() {
-        console.log('Carregando tabela de contatos...');
-        const tbody = document.getElementById('contactsTableBody');
-        if (!tbody) {
-            console.error('Elemento contactsTableBody não encontrado');
-            return;
-        }
-
-        tbody.innerHTML = '';
-
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
-        this.contatos.forEach(contato => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-            <td>${contato.nome}</td>
-            <td>${contato.email}</td>
-            <td>${contato.telefone}</td>
-            <td>${contato.cidade}</td>
-            <td>${contato.bairro}</td>
-            <td><span class="badge ${contato.status}">${contato.status === 'ativo' ? 'Ativo' : 'Inativo'}</span></td>
-            <td>${contato.dataCadastro}</td>
-            <td>
-                <div class="actions">
-                    <button class="btn-icon btn-edit tooltip" onclick="contactsManager.editarContato(${contato.id})" data-tooltip="Editar">
-                        <i data-lucide="edit-2"></i>
-                    </button>
-                    <button class="btn-icon btn-delete tooltip" onclick="contactsManager.excluirContato(${contato.id})" data-tooltip="Apagar">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </div>
-            </td>
+        row.innerHTML = `
+        <td>${c.nome || "-"}</td>
+        <td>${c.email || "-"}</td>
+        <td>${c.telefone || "-"}</td>
+        <td>${c.cidade || "-"}</td>
+        <td>${c.bairro || "-"}</td>
+        <td>${c.status || "ativo"}</td>
+        <td>${c.dataCadastro || "-"}</td>
+        <td>
+            <button class="btn btn-outline" onclick="contactsManager.updateContact(${c.id})">
+            <i data-lucide="edit"></i> Editar
+            </button>
+            <button class="btn btn-danger" onclick="contactsManager.deleteContact(${c.id})">
+            <i data-lucide="trash"></i> Excluir
+            </button>
+        </td>
         `;
-            tbody.appendChild(tr);
-        });
+
+        tbody.appendChild(row);
+    });
 
         // Atualiza ícones do Lucide
         if (window.lucide) {
             lucide.createIcons();
         }
 
-        console.log('Tabela de contatos carregada');
+        console.log(`Tabela atualizada com ${this.contatos.length} contatos.`);
     }
 
-    editarContato(id); {
+    editarContato(id) {
         console.log('Editando contato:', id);
         const contato = this.contatos.find(c => c.id === id);
         if (!contato) return;
@@ -1132,7 +1071,7 @@ class ContactsManager {
         newForm.querySelector('button[type="submit"]').textContent = 'Atualizar Cadastro';
     }
 
-    abrirNovoCadastro(); {
+    abrirNovoCadastro() {
         console.log('Abrindo formulário de cadastro');
         const section = document.getElementById('novoCadastroSection');
         if (section) {
@@ -1141,7 +1080,7 @@ class ContactsManager {
         }
     }
 
-    fecharNovoCadastro(); {
+    fecharNovoCadastro() {
         console.log('Fechando formulário de cadastro');
         const section = document.getElementById('novoCadastroSection');
         const form = document.getElementById('formNovoCadastro');
@@ -1150,7 +1089,7 @@ class ContactsManager {
         if (form) form.reset();
     }
 
-    showNotification(message, type = 'info'); {
+    showNotification(message, type = 'info') {
         // Cria notificação temporária
         const notification = document.createElement('div');
         const bgColor = type === 'success' ? 'var(--primary-1)' : 'var(--muted-2)';
@@ -1198,10 +1137,10 @@ class ContactsManager {
         }, 3000);
     }
 
-    exportContacts(); {
+    exportContacts() {
         console.log('Exportando contatos...');
         const csvContent = "data:text/csv;charset=utf-8,"
-            + "Nome,E-mail,Telefone,Cidade,Bairro,Status,Data Cadastro\n"
+            + "Nome,E-mail,Telefone,Cidade,Bairro,Status,Data_Cadastro\n"
             + this.contatos.map(contato =>
                 `"${contato.nome}","${contato.email}","${contato.telefone}","${contato.cidade}","${contato.bairro}","${contato.status}","${contato.dataCadastro}"`
             ).join("\n");
@@ -1214,6 +1153,7 @@ class ContactsManager {
         link.click();
         document.body.removeChild(link);
     }
+}
 
 // ================= CONFIG GLOBAL =================
 document.addEventListener('DOMContentLoaded', function () {

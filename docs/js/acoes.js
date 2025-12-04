@@ -4,10 +4,7 @@ class ActionsManager {
         // Configuração da API
         this.API_BASE = "http://localhost:8000";
         this.token = localStorage.getItem("token");
-        if (!this.token) {
-        alert("Sessão expirada. Faça login novamente.");
-        window.location.href = "index.html";
-        }
+
         // Botões de exportação (com IDs específicos)
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
@@ -16,12 +13,7 @@ class ActionsManager {
         this.map = null;
         this.currentMarkers = [];
         this.heatLayer = null;
-<<<<<<< HEAD
-
-        this.currentView = 'calor'; 
-=======
-        this.currentView = 'calor';
->>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
+    this.currentView = 'calor'; 
         this.nextId = 1;
 
         // Sistema de posições personalizadas
@@ -1350,31 +1342,35 @@ class ActionsManager {
     }
 
     renderTable() {
-        const tbody = document.getElementById("acoesTbody");
-        tbody.innerHTML = "";
+        const tbody = document.getElementById('acoesTbody');
+        tbody.innerHTML = '';
 
-        this.actions.forEach(a => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-            <td>${a.cidade}</td>
-            <td>${a.bairro}</td>
-            <td>${a.tipo}</td>
-            <td>${a.data}</td>
-            <td>
-                <button class="btn btn-outline" onclick="actionsManager.updateAction(${a.id}, document.getElementById('formNovaAcao'))">
-                <i data-lucide="edit"></i> Editar
-                </button>
-                <button class="btn btn-danger" onclick="actionsManager.deleteAction(${a.id})">
-                <i data-lucide="trash"></i> Excluir
-                </button>
-            </td>
+        this.actions.forEach(action => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${action.cidade}</td>
+                <td>${action.bairro}</td>
+                <td>${action.tipo}</td>
+                <td>${action.data}</td>
+                <td class="actions-cell">
+                    <button class="btn-icon btn-edit tooltip" data-action="edit" data-id="${action.id}" data-tooltip="Editar">
+                        <i data-lucide="edit-2"></i>
+                    </button>
+                    <button class="btn-icon btn-delete tooltip" data-action="delete" data-id="${action.id}" data-tooltip="Apagar">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </td>
             `;
-            tbody.appendChild(row);
+            tbody.appendChild(tr);
         });
+
+        // Atualiza ícones do Lucide
+        if (window.lucide) {
+            lucide.createIcons();
         }
     }
 
-    handleTableClick(e); {
+    handleTableClick(e) {
         const btn = e.target.closest('button');
         if (!btn) return;
 
@@ -1388,7 +1384,7 @@ class ActionsManager {
         }
     }
 
-    editAction(id); {
+    editAction(id) {
         const action = this.actions.find(a => a.id === id);
         if (!action) return;
 
@@ -1411,7 +1407,7 @@ class ActionsManager {
         } else {
             form.dataAcao.value = '';
         }
-    
+
         // Abre o modal
         this.openModal();
 
@@ -1426,7 +1422,7 @@ class ActionsManager {
     }
 
     // Métodos de exportação (MANTIDOS COMPLETOS)
-    exportToPDF(); {
+    exportToPDF() {
         const { jsPDF } = window.jspdf;
 
         // Cria o documento PDF
@@ -1502,7 +1498,7 @@ class ActionsManager {
         this.showNotification('PDF gerado com sucesso!', 'success');
     }
 
-    exportToExcel(); {
+    exportToExcel() {
         // Prepara os dados
         const data = this.actions.map(action => ({
             'Cidade': action.cidade,
@@ -1608,6 +1604,7 @@ class ActionsManager {
 
         this.showNotification('Excel gerado com sucesso!', 'success');
     }
+}
 
 // ================= CONFIG GLOBAL =================
 // Inicializa quando a página carrega

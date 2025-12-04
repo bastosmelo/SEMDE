@@ -14,7 +14,7 @@ document.querySelectorAll('.menu-item').forEach(button => {
 
 
 // CONFIG
-const API_BASE = "http://localhost:8000";
+const API_LOGIN_URL = "http://127.0.0.1:8000/login";
 const USE_BACKEND = true;
 
 
