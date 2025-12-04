@@ -1028,6 +1028,7 @@ class ContactsManager {
         };
     }
 
+<<<<<<< HEAD
     carregarTabelaContatos(); {
         console.log("Carregando tabela de contatos...");
         const tbody = document.getElementById("contactsTableBody");
@@ -1047,6 +1048,18 @@ class ContactsManager {
 
         tbody.innerHTML = '';
 
+=======
+    carregarTabelaContatos() {
+        console.log('Carregando tabela de contatos...');
+        const tbody = document.getElementById('contactsTableBody');
+        if (!tbody) {
+            console.error('Elemento contactsTableBody não encontrado');
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+>>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
         this.contatos.forEach(contato => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
