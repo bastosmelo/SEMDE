@@ -6,7 +6,7 @@ import asyncpg
 import os
 
 # Configuração do banco
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://usuario:senha@localhost:5432/sistema_login")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://usuario:senha@localhost:5432/seu_banco")
 
 # Models Pydantic
 class ContatoBase(BaseModel):

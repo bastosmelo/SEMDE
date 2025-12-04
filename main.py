@@ -431,7 +431,8 @@ def atualizar_contato(
         contato.data_cadastro = contato_data.data_cadastro
         contato.lat = contato_data.lat
         contato.lng = contato_data.lng
-                
+        contato.atualizado_em = datetime.now()
+        
         db.commit()
         db.refresh(contato)
         

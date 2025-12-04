@@ -90,43 +90,47 @@ class ContactsManager {
     // Salvar novo contato no banco
     async saveContact(contactData) {
         try {
-            console.log("Enviando dados para API:", contactData);
+            console.log('📤 Enviando dados para API:', contactData);
 
             const response = await fetch(`${this.API_BASE}/contatos`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${this.token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                nome: contactData.nome,
-                idade: contactData.idade ? parseInt(contactData.idade) : null,
-                sexo: contactData.sexo,
-                email: contactData.email,
-                telefone: contactData.telefone,
-                cidade: contactData.cidade,
-                bairro: contactData.bairro,
-                escolaridade: contactData.escolaridade,
-                assessor: contactData.assessor,
-                assunto: contactData.assunto,
-                observacao: contactData.observacao,
-                status: contactData.status || "ativo",
-                data_cadastro: new Date().toISOString().split("T")[0],
-                lat: contactData.lat,
-                lng: contactData.lng,
-            }),
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nome: contactData.nome,
+                    idade: contactData.idade ? parseInt(contactData.idade) : null,
+                    sexo: contactData.sexo,
+                    email: contactData.email,
+                    telefone: contactData.telefone,
+                    cidade: contactData.cidade,
+                    bairro: contactData.bairro,
+                    escolaridade: contactData.escolaridade,
+                    assessor: contactData.assessor,
+                    assunto: contactData.assunto,
+                    observacao: contactData.observacao,
+                    status: contactData.status,
+                    data_cadastro: contactData.dataCadastro || new Date().toISOString().split('T')[0],
+                    lat: contactData.lat,
+                    lng: contactData.lng
+                })
             });
 
+            console.log('📥 Resposta da API - Status:', response.status);
+
             if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erro ${response.status}: ${errorText}`);
+                const errorText = await response.text();
+                console.error('❌ Erro HTTP:', response.status, errorText);
+                throw new Error(`Erro ${response.status}: ${errorText}`);
             }
 
             const result = await response.json();
-            console.log("Contato salvo com sucesso:", result);
+            console.log('✅ Contato salvo com sucesso:', result);
             return result;
+
         } catch (error) {
-            console.error("Erro ao salvar contato:", error);
+            console.error('💥 Erro completo ao salvar contato:', error);
             throw error;
         }
     }
@@ -265,7 +269,7 @@ class ContactsManager {
             console.log('Token:', this.token ? 'Presente' : 'Ausente');
             console.log('API Base:', this.API_BASE);
             
-            const response = await fetch(`${this.API_BASE}/contatos`,    {
+            const response = await fetch(`${this.API_BASE}/contatos`, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
                     'Content-Type': 'application/json',
@@ -554,7 +558,6 @@ class ContactsManager {
             if (activeElem) activeElem.textContent = stats.active_contacts;
             if (newElem) newElem.textContent = stats.new_today;
             if (citiesElem) citiesElem.textContent = stats.total_cities;
-
         } catch (error) {
             // Fallback para cálculo local
             const stats = this.calculateLocalStatistics();
@@ -567,7 +570,6 @@ class ContactsManager {
             if (activeElem) activeElem.textContent = stats.active_contacts;
             if (newElem) newElem.textContent = stats.new_today;
             if (citiesElem) citiesElem.textContent = stats.total_cities;
-
         }
     }
 
@@ -1026,6 +1028,7 @@ class ContactsManager {
         };
     }
 
+<<<<<<< HEAD
     carregarTabelaContatos(); {
     console.log("Carregando tabela de contatos...");
     const tbody = document.getElementById("contactsTableBody");
@@ -1033,41 +1036,48 @@ class ContactsManager {
         console.error("Elemento contactsTableBody não encontrado!");
         return;
     }
+=======
+    carregarTabelaContatos() {
+        console.log('Carregando tabela de contatos...');
+        const tbody = document.getElementById('contactsTableBody');
+        if (!tbody) {
+            console.error('Elemento contactsTableBody não encontrado');
+            return;
+        }
+>>>>>>> parent of 5148025 (Atualização do cadastrao.js para vinculação como BD.)
 
-    // Limpa a tabela antes de inserir os dados
-    tbody.innerHTML = "";
+        tbody.innerHTML = '';
 
-    // Percorre todos os contatos carregados do banco
-    this.contatos.forEach((c) => {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-        <td>${c.nome || "-"}</td>
-        <td>${c.email || "-"}</td>
-        <td>${c.telefone || "-"}</td>
-        <td>${c.cidade || "-"}</td>
-        <td>${c.bairro || "-"}</td>
-        <td>${c.status || "ativo"}</td>
-        <td>${c.dataCadastro || "-"}</td>
-        <td>
-            <button class="btn btn-outline" onclick="contactsManager.updateContact(${c.id})">
-            <i data-lucide="edit"></i> Editar
-            </button>
-            <button class="btn btn-danger" onclick="contactsManager.deleteContact(${c.id})">
-            <i data-lucide="trash"></i> Excluir
-            </button>
-        </td>
+        this.contatos.forEach(contato => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+            <td>${contato.nome}</td>
+            <td>${contato.email}</td>
+            <td>${contato.telefone}</td>
+            <td>${contato.cidade}</td>
+            <td>${contato.bairro}</td>
+            <td><span class="badge ${contato.status}">${contato.status === 'ativo' ? 'Ativo' : 'Inativo'}</span></td>
+            <td>${contato.dataCadastro}</td>
+            <td>
+                <div class="actions">
+                    <button class="btn-icon btn-edit tooltip" onclick="contactsManager.editarContato(${contato.id})" data-tooltip="Editar">
+                        <i data-lucide="edit-2"></i>
+                    </button>
+                    <button class="btn-icon btn-delete tooltip" onclick="contactsManager.excluirContato(${contato.id})" data-tooltip="Apagar">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </td>
         `;
-
-        tbody.appendChild(row);
-    });
+            tbody.appendChild(tr);
+        });
 
         // Atualiza ícones do Lucide
         if (window.lucide) {
             lucide.createIcons();
         }
 
-        console.log(`Tabela atualizada com ${this.contatos.length} contatos.`);
+        console.log('Tabela de contatos carregada');
     }
 
     editarContato(id); {
@@ -1179,7 +1189,7 @@ class ContactsManager {
     exportContacts(); {
         console.log('Exportando contatos...');
         const csvContent = "data:text/csv;charset=utf-8,"
-            + "Nome,E-mail,Telefone,Cidade,Bairro,Status,Data_Cadastro\n"
+            + "Nome,E-mail,Telefone,Cidade,Bairro,Status,Data Cadastro\n"
             + this.contatos.map(contato =>
                 `"${contato.nome}","${contato.email}","${contato.telefone}","${contato.cidade}","${contato.bairro}","${contato.status}","${contato.dataCadastro}"`
             ).join("\n");
